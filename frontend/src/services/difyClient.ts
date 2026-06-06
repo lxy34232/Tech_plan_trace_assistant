@@ -67,11 +67,12 @@ export async function sendChatMessage(
 
       try {
         const event = JSON.parse(data)
-        if (event.event === 'message' && event.answer) {
+        // Agent mode uses 'agent_message', Chatbot/Workflow uses 'message'
+        if ((event.event === 'message' || event.event === 'agent_message') && event.answer) {
           callbacks.onToken(event.answer)
           if (event.conversation_id) convId = event.conversation_id
           if (event.message_id) msgId = event.message_id
-        } else if (event.event === 'message_end') {
+        } else if (event.event === 'message_end' || event.event === 'agent_message_end') {
           if (event.conversation_id) convId = event.conversation_id
           if (event.message_id) msgId = event.message_id
         } else if (event.event === 'error') {
