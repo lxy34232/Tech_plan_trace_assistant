@@ -16,7 +16,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
           <Share2 size={14} className="text-white" />
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-slate-200">DOORS 追溯助手</div>
+          <div className="text-sm font-semibold text-slate-200">科技规划问答追溯助手</div>
           <div className="text-[10px] text-slate-600 hidden sm:block">科技规划信息问答与追溯</div>
         </div>
       </div>
