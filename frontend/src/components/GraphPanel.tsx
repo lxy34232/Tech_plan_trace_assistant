@@ -5,7 +5,7 @@ import dagre from 'cytoscape-dagre'
 import type { GraphData, GraphNode } from '../types'
 import { NODE_TYPE_COLOR, NODE_TYPE_LABEL, RELATION_TYPE_LABEL } from '../types'
 import NodeDetail from './NodeDetail'
-import { ZoomIn, ZoomOut, Maximize2, Info } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Share2 } from 'lucide-react'
 
 cytoscape.use(dagre)
 
@@ -23,28 +23,44 @@ const CY_STYLE: any[] = [
       color: '#e2e8f0',
       'font-size': 11,
       'text-wrap': 'ellipsis',
-      'text-max-width': '100px',
+      'text-max-width': '110px',
       'text-valign': 'bottom',
-      'text-margin-y': 4,
-      width: 40,
-      height: 40,
-      'border-width': 2,
+      'text-margin-y': 6,
+      'text-background-color': '#0f1117',
+      'text-background-opacity': 0.85,
+      'text-background-padding': '2px',
+      'text-background-shape': 'roundrectangle',
+      width: 42,
+      height: 42,
+      'border-width': 2.5,
       'border-color': 'data(borderColor)',
+      'transition-property': 'border-width, border-color',
+      'transition-duration': '0.2s',
     },
   },
   {
     selector: 'node:selected',
     style: {
-      'border-width': 3,
+      'border-width': 4,
       'border-color': '#ffffff',
       'overlay-color': '#ffffff',
-      'overlay-opacity': 0.1,
+      'overlay-opacity': 0.12,
+      'overlay-padding': 4,
+    },
+  },
+  {
+    selector: 'node.highlighted',
+    style: {
+      'border-width': 3,
+      'border-color': '#a5b4fc',
+      'overlay-color': '#a5b4fc',
+      'overlay-opacity': 0.08,
     },
   },
   {
     selector: 'edge',
     style: {
-      width: 1.5,
+      width: 1.8,
       'line-color': '#3d4474',
       'target-arrow-color': '#3d4474',
       'target-arrow-shape': 'triangle',
@@ -53,8 +69,11 @@ const CY_STYLE: any[] = [
       'font-size': 9,
       color: '#64748b',
       'text-background-color': '#0f1117',
-      'text-background-opacity': 1,
-      'text-background-padding': '2px',
+      'text-background-opacity': 0.9,
+      'text-background-padding': '3px',
+      'text-background-shape': 'roundrectangle',
+      'transition-property': 'line-color, target-arrow-color, width',
+      'transition-duration': '0.2s',
     },
   },
   {
@@ -63,6 +82,14 @@ const CY_STYLE: any[] = [
       'line-color': '#6366f1',
       'target-arrow-color': '#6366f1',
       color: '#a5b4fc',
+      width: 2.5,
+    },
+  },
+  {
+    selector: 'edge.highlighted',
+    style: {
+      'line-color': '#818cf8',
+      'target-arrow-color': '#818cf8',
     },
   },
 ]
@@ -133,9 +160,16 @@ export default function GraphPanel({ graphData }: Props) {
 
   if (!graphData || graphData.nodes.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-[#0f1117] text-slate-600">
-        <Info size={32} />
-        <p className="text-sm">向 AI 提问后，追溯图谱将在此显示</p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-[#0f1117] text-slate-600 animate-fade-in">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-500/10 to-slate-700/10 border border-[#2d3150] flex items-center justify-center">
+            <Share2 size={32} className="text-slate-700" />
+          </div>
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-sm font-medium text-slate-500">追溯图谱可视化</p>
+          <p className="text-xs text-slate-600">向 AI 提问后，系统将自动生成知识图谱</p>
+        </div>
       </div>
     )
   }
@@ -143,38 +177,42 @@ export default function GraphPanel({ graphData }: Props) {
   const elements = buildElements(graphData)
 
   return (
-    <div className="flex flex-1 min-h-0 bg-[#0f1117]">
+    <div className="flex flex-1 min-h-0 bg-[#0f1117] animate-fade-in">
       {/* Graph area */}
       <div className="flex-1 relative min-w-0">
         {/* Toolbar */}
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
-          <button onClick={handleZoomIn} title="放大" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130] border border-[#2d3150] text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          <button onClick={handleZoomIn} title="放大" aria-label="放大图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 hover:text-slate-200 hover:border-indigo-500/40 hover:bg-[#252840] transition-all duration-200 backdrop-blur-sm">
             <ZoomIn size={15} />
           </button>
-          <button onClick={handleZoomOut} title="缩小" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130] border border-[#2d3150] text-slate-400 hover:text-slate-200 transition-colors">
+          <button onClick={handleZoomOut} title="缩小" aria-label="缩小图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 hover:text-slate-200 hover:border-indigo-500/40 hover:bg-[#252840] transition-all duration-200 backdrop-blur-sm">
             <ZoomOut size={15} />
           </button>
-          <button onClick={handleFit} title="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130] border border-[#2d3150] text-slate-400 hover:text-slate-200 transition-colors">
+          <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 hover:text-slate-200 hover:border-indigo-500/40 hover:bg-[#252840] transition-all duration-200 backdrop-blur-sm">
             <Maximize2 size={15} />
           </button>
         </div>
 
         {/* Stats */}
-        <div className="absolute top-3 right-3 z-10 flex gap-2 text-[10px] text-slate-600">
-          <span className="px-2 py-0.5 rounded-full bg-[#1e2130] border border-[#2d3150]">
-            {nodeCount} 节点
+        <div className="absolute top-3 right-3 z-10 flex gap-2 text-[10px]">
+          <span className="px-2.5 py-1 rounded-full bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 backdrop-blur-sm">
+            <span className="text-indigo-400 font-semibold">{nodeCount}</span> 节点
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-[#1e2130] border border-[#2d3150]">
-            {edgeCount} 关系
+          <span className="px-2.5 py-1 rounded-full bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 backdrop-blur-sm">
+            <span className="text-indigo-400 font-semibold">{edgeCount}</span> 关系
           </span>
         </div>
 
         {/* Legend */}
-        <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[#1e2130]/90 border border-[#2d3150] rounded-xl p-2.5 backdrop-blur-sm">
+        <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[#1e2130]/95 border border-[#2d3150] rounded-xl p-3 backdrop-blur-md shadow-lg shadow-black/20">
+          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-0.5">图例</span>
           {Object.entries(NODE_TYPE_COLOR).map(([type, color]) => (
-            <div key={type} className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-              <span className="text-[10px] text-slate-500">{NODE_TYPE_LABEL[type]}</span>
+            <div key={type} className="flex items-center gap-2 group cursor-default">
+              <div
+                className="w-3 h-3 rounded-full ring-2 ring-offset-1 ring-offset-[#1e2130] transition-transform duration-200 group-hover:scale-125"
+                style={{ background: color, boxShadow: `0 0 0 1px ${color}40` }}
+              />
+              <span className="text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors">{NODE_TYPE_LABEL[type] ?? type}</span>
             </div>
           ))}
         </div>

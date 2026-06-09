@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Eye, EyeOff, ExternalLink } from 'lucide-react'
+import { X, Eye, EyeOff, ExternalLink, Zap, Server } from 'lucide-react'
 import type { AppConfig } from '../types'
 
 interface Props {
@@ -18,7 +18,7 @@ function Field({
   const isPassword = type === 'password'
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <label className="block text-xs font-medium text-slate-400">{label}</label>
       <div className="relative">
         <input
@@ -26,19 +26,20 @@ function Field({
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[#13151f] border border-[#2d3150] rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-700 outline-none focus:border-indigo-600/60 pr-9"
+          className="w-full bg-[#13151f] border border-[#2d3150] rounded-lg px-3 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200 pr-9"
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShow(s => !s)}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+            aria-label={show ? '隐藏' : '显示'}
           >
             {show ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
         )}
       </div>
-      {hint && <p className="text-[10px] text-slate-600">{hint}</p>}
+      {hint && <p className="text-[10px] text-slate-600 leading-relaxed">{hint}</p>}
     </div>
   )
 }
@@ -55,17 +56,24 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-[#1e2130] border border-[#2d3150] rounded-2xl w-full max-w-lg shadow-2xl"
+        className="bg-[#1e2130] border border-[#2d3150] rounded-2xl w-full max-w-lg shadow-2xl shadow-black/50 animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#2d3150]">
-          <h2 className="text-base font-semibold text-slate-200">连接设置</h2>
-          <button onClick={onClose} className="text-slate-600 hover:text-slate-300 transition-colors">
+          <h2 className="text-base font-semibold text-slate-200 flex items-center gap-2">
+            <SettingsIcon />
+            连接设置
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
+            aria-label="关闭"
+          >
             <X size={18} />
           </button>
         </div>
@@ -73,10 +81,12 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         {/* Body */}
         <div className="px-6 py-5 space-y-5">
           {/* Dify section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-[#2d3150]" />
-              <span className="text-[10px] uppercase tracking-wider text-slate-600 font-semibold">Dify 配置</span>
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <Zap size={13} className="text-indigo-400" />
+              </div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Dify 配置</span>
               <div className="h-px flex-1 bg-[#2d3150]" />
             </div>
             <Field
@@ -92,15 +102,16 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
               onChange={set('difyApiKey')}
               type="password"
               placeholder="app-xxxxxxxxxxxxxxxx"
-              hint={undefined}
             />
           </div>
 
           {/* Proxy section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-[#2d3150]" />
-              <span className="text-[10px] uppercase tracking-wider text-slate-600 font-semibold">Neo4j 代理</span>
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center">
+                <Server size={13} className="text-slate-400" />
+              </div>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Neo4j 代理</span>
               <div className="h-px flex-1 bg-[#2d3150]" />
             </div>
             <Field
@@ -108,7 +119,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
               value={draft.proxyUrl}
               onChange={set('proxyUrl')}
               placeholder="https://your-proxy.onrender.com"
-              hint="Neo4j 代理服务的 URL（由 Dify 调用，无需在此填写即可使用）"
+              hint="Neo4j 代理服务的 URL（由 Dify 调用，前端暂不直连代理）"
             />
             <Field
               label="代理 API Key"
@@ -123,7 +134,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
             href="https://cloud.dify.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300"
+            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             <ExternalLink size={12} />
             打开 Dify Cloud 控制台
@@ -131,18 +142,30 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 justify-end px-6 py-4 border-t border-[#2d3150]">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="flex gap-2 justify-end px-6 py-4 border-t border-[#2d3150] bg-[#1a1d27]/30 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-700/30 rounded-lg transition-all duration-200"
+          >
             取消
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors"
+            className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all duration-200 shadow-sm shadow-indigo-600/20 font-medium"
           >
-            保存
+            保存配置
           </button>
         </div>
       </div>
     </div>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-slate-400">
+      <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
+    </svg>
   )
 }
