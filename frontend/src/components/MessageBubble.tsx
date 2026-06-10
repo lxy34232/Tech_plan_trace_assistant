@@ -32,7 +32,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20">
           <Bot size={15} className="text-white" />
         </div>
-        <div className="flex items-center gap-1.5 mt-2 px-4 py-3 rounded-2xl rounded-tl-sm bg-[#1e2130] border border-[#2d3150]">
+        <div className="flex items-center gap-1.5 mt-2 px-4 py-3 rounded-2xl rounded-tl-sm bg-[var(--color-bg-card)] border border-[var(--color-border)]">
           {[0, 1, 2].map(i => (
             <span
               key={i}
@@ -69,7 +69,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
               ? 'bg-indigo-600 text-white rounded-tr-sm shadow-md shadow-indigo-600/15'
               : message.error
                 ? 'bg-red-950/60 border border-red-800/50 text-red-300 rounded-tl-sm'
-                : 'bg-[#1e2130] border border-[#2d3150] text-slate-200 rounded-tl-sm shadow-sm'
+                : 'bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-tl-sm shadow-sm'
           }`}
         >
           {isUser ? (
@@ -94,7 +94,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
               <span className={`ml-auto transition-transform duration-200 text-[10px] ${showThinking ? 'rotate-90' : ''}`}>▶</span>
             </button>
             {showThinking && (
-              <div className="mt-1.5 text-xs text-slate-400 bg-[#161820] border border-[#2d3150] rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
+              <div className="mt-1.5 text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-think)] border border-[var(--color-border)] rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
                 {message.thinking}
               </div>
             )}
@@ -113,7 +113,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
               <span className={`ml-auto transition-transform duration-200 text-[10px] ${showQueryResult ? 'rotate-90' : ''}`}>▶</span>
             </button>
             {showQueryResult && (
-              <div className="mt-1.5 text-xs text-emerald-300 bg-[#0d0f1a] border border-emerald-500/20 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
+              <div className="mt-1.5 text-xs text-emerald-300 bg-[var(--color-bg-code)] border border-emerald-500/20 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
                 {message.queryResult}
               </div>
             )}
@@ -135,7 +135,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             {message.cypher && (
               <button
                 onClick={() => onShowCypher?.(message.cypher!)}
-                className="text-xs px-3 py-1.5 rounded-full bg-slate-700/30 border border-slate-600/30 text-slate-400 hover:bg-slate-700/50 hover:text-slate-300 transition-all duration-200 flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-full bg-slate-700/30 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-slate-700/50 hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
               >
                 <Code2 size={11} />
                 Cypher
@@ -144,7 +144,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           </div>
         )}
 
-        <span className="text-[10px] text-slate-600 px-1">
+        <span className="text-[10px] text-[var(--color-text-dim)] px-1">
           {message.timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>

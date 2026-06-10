@@ -19,27 +19,27 @@ function Field({
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-medium text-slate-400">{label}</label>
+      <label className="block text-xs font-medium text-[var(--color-text-secondary)]">{label}</label>
       <div className="relative">
         <input
           type={isPassword && !show ? 'password' : 'text'}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[#13151f] border border-[#2d3150] rounded-lg px-3 py-2.5 text-sm text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200 pr-9"
+          className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200 pr-9"
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShow(s => !s)}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
             aria-label={show ? '隐藏' : '显示'}
           >
             {show ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
         )}
       </div>
-      {hint && <p className="text-[10px] text-slate-600 leading-relaxed">{hint}</p>}
+      {hint && <p className="text-[10px] text-[var(--color-text-dim)] leading-relaxed">{hint}</p>}
     </div>
   )
 }
@@ -56,22 +56,22 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+      className="fixed inset-0 bg-[var(--color-overlay)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-[#1e2130] border border-[#2d3150] rounded-2xl w-full max-w-lg shadow-2xl shadow-black/50 animate-scale-in"
+        className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl shadow-[var(--color-shadow)] animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2d3150]">
-          <h2 className="text-base font-semibold text-slate-200 flex items-center gap-2">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
+          <h2 className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
             <SettingsIcon />
             连接设置
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
             aria-label="关闭"
           >
             <X size={18} />
@@ -86,8 +86,8 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
               <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
                 <Zap size={13} className="text-indigo-400" />
               </div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Dify 配置</span>
-              <div className="h-px flex-1 bg-[#2d3150]" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Dify 配置</span>
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
             </div>
             <Field
               label="Dify Base URL"
@@ -109,10 +109,10 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center">
-                <Server size={13} className="text-slate-400" />
+                <Server size={13} className="text-[var(--color-text-secondary)]" />
               </div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Neo4j 代理</span>
-              <div className="h-px flex-1 bg-[#2d3150]" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Neo4j 代理</span>
+              <div className="h-px flex-1 bg-[var(--color-border)]" />
             </div>
             <Field
               label="代理服务地址"
@@ -142,10 +142,10 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 justify-end px-6 py-4 border-t border-[#2d3150] bg-[#1a1d27]/30 rounded-b-2xl">
+        <div className="flex gap-2 justify-end px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]/30 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-700/30 rounded-lg transition-all duration-200"
+            className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/30 rounded-lg transition-all duration-200"
           >
             取消
           </button>
@@ -163,7 +163,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
 
 function SettingsIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-slate-400">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[var(--color-text-secondary)]">
       <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
       <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
     </svg>

@@ -1,4 +1,5 @@
-import { Settings, Share2, MessageSquare, GitBranch } from 'lucide-react'
+import { Settings, Share2, MessageSquare, GitBranch, Sun, Moon } from 'lucide-react'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface Props {
   activeTab: 'chat' | 'graph'
@@ -8,8 +9,10 @@ interface Props {
 }
 
 export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile }: Props) {
+  const { theme, toggleTheme } = useTheme()
+
   return (
-    <header className="flex items-center gap-3 px-4 py-2.5 bg-[#1a1d27]/95 backdrop-blur-md border-b border-[#2d3150] shrink-0 relative z-20">
+    <header className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-bg-secondary)]/95 backdrop-blur-md border-b border-[var(--color-border)] shrink-0 relative z-20">
       {/* Subtle top glow bar */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
 
@@ -22,20 +25,20 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
           <div className="absolute inset-0 rounded-lg ring-1 ring-indigo-400/20" />
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-slate-200 tracking-tight">科技规划问答追溯助手</div>
-          <div className="text-[10px] text-slate-500 hidden sm:block font-medium tracking-wide">DOORS Trace Assistant</div>
+          <div className="text-sm font-semibold text-[var(--color-text-primary)] tracking-tight">科技规划问答追溯助手</div>
+          <div className="text-[10px] text-[var(--color-text-muted)] hidden sm:block font-medium tracking-wide">DOORS Trace Assistant</div>
         </div>
       </div>
 
       {/* Mobile tab switcher */}
       {isMobile && (
-        <div className="flex bg-[#0f1117] rounded-lg p-0.5 border border-[#2d3150] shadow-inner">
+        <div className="flex bg-[var(--color-bg-primary)] rounded-lg p-0.5 border border-[var(--color-border)] shadow-inner">
           <button
             onClick={() => onTabChange('chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'chat'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
             <MessageSquare size={12} />
@@ -46,7 +49,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'graph'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
             <GitBranch size={12} />
@@ -55,10 +58,20 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
         </div>
       )}
 
+      {/* Theme toggle */}
+      <button
+        onClick={toggleTheme}
+        className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"
+        aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
+        title={theme === 'dark' ? '浅色模式' : '深色模式'}
+      >
+        {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+      </button>
+
       {/* Config button */}
       <button
         onClick={onOpenConfig}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 bg-[#13151f]/80 border border-[#2d3150] rounded-lg hover:border-indigo-500/40 hover:bg-[#1a1d27] transition-all duration-200"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] rounded-lg hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"
         aria-label="打开设置"
       >
         <Settings size={13} />

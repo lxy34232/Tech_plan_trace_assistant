@@ -119,7 +119,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            <div className="flex flex-col min-h-0 border-r border-[#2d3150]" style={{ width: panelWidth, minWidth: 320, maxWidth: '55%' }}>
+            <div className="flex flex-col min-h-0 border-r border-[var(--color-border)]" style={{ width: panelWidth, minWidth: 320, maxWidth: '55%' }}>
               <ChatPanel config={config} onGraphData={handleGraphData} onShowGraph={handleShowGraph} />
             </div>
             {/* Resize handle */}
@@ -128,7 +128,7 @@ export default function App() {
               onMouseDown={handleResizeStart}
             >
               <div className="absolute inset-y-0 -left-1 -right-1" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-[#3d4474] group-hover:bg-indigo-400 group-active:bg-indigo-300 transition-colors duration-150" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-[var(--color-border-light)] group-hover:bg-indigo-400 group-active:bg-indigo-300 transition-colors duration-150" />
             </div>
             <div className="flex-1 flex flex-col min-h-0 min-w-0">
               <GraphPanel graphData={graphData} />

@@ -14,7 +14,7 @@ interface Props {
 const SUGGESTED = [
   '查询所有高优先级的科技规划需求',
   '需求"XXX"向下追溯到哪些科研项目？',
-  '查询状态为 in_progress 的任务及负责人',
+  '查询规划中有关高速重载机车的相关内容',
   '大纲包含哪些文本？每个文本规定了哪些需求？',
 ]
 
@@ -128,7 +128,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0f1117]">
+    <div className="flex flex-col h-full bg-[var(--color-bg-primary)]">
       {/* Message list */}
       <div className="flex-1 overflow-y-auto py-2">
         {messages.length === 0 ? (
@@ -141,8 +141,8 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
                 </div>
                 <div className="absolute -inset-1 rounded-2xl bg-indigo-500/5 blur-xl -z-10" />
               </div>
-              <h2 className="text-xl font-semibold text-slate-200 mb-1.5 tracking-tight">DOORS 追溯问答</h2>
-              <p className="text-sm text-slate-500">用自然语言查询科技规划数据库，支持全链路追溯分析</p>
+              <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1.5 tracking-tight">DOORS 追溯问答</h2>
+              <p className="text-sm text-[var(--color-text-muted)]">用自然语言查询科技规划数据库，支持全链路追溯分析</p>
             </div>
 
             {/* Suggested questions */}
@@ -151,7 +151,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
-                  className={`text-left text-sm px-4 py-3 rounded-xl bg-[#1e2130] border border-[#2d3150] text-slate-400 hover:border-indigo-500/40 hover:text-slate-200 hover:bg-[#232840] transition-all duration-200 animate-fade-in-up group`}
+                  className={`text-left text-sm px-4 py-3 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/40 hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 animate-fade-in-up group`}
                   style={{ animationDelay: `${i * 0.08 + 0.1}s` }}
                 >
                   <span className="flex items-center gap-2.5">
@@ -165,7 +165,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
             </div>
 
             {/* Bottom hint */}
-            <p className="text-[11px] text-slate-600 text-center animate-fade-in animate-delay-500">
+            <p className="text-[11px] text-[var(--color-text-dim)] text-center animate-fade-in animate-delay-500">
               以上为示例问题，你也可以自由输入任何追溯查询
             </p>
           </div>
@@ -183,8 +183,8 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       </div>
 
       {/* Input area */}
-      <div className="border-t border-[#2d3150] p-4 bg-gradient-to-t from-[#0f1117] to-transparent">
-        <div className="flex gap-2 items-end bg-[#1e2130] border border-[#2d3150] rounded-2xl px-4 py-2.5 focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/5 transition-all duration-300">
+      <div className="border-t border-[var(--color-border)] p-4 bg-gradient-to-t from-[var(--color-bg-primary)] to-transparent">
+        <div className="flex gap-2 items-end bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl px-4 py-2.5 focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/5 transition-all duration-300">
           <textarea
             ref={inputRef}
             value={input}
@@ -192,7 +192,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
             onKeyDown={handleKeyDown}
             placeholder="输入问题，Enter 发送，Shift+Enter 换行…"
             rows={1}
-            className="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-600 resize-none outline-none py-1 max-h-32"
+            className="flex-1 bg-transparent text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] resize-none outline-none py-1 max-h-32"
             style={{ lineHeight: '1.5rem' }}
             disabled={isLoading}
           />
@@ -200,7 +200,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
             <button
               onClick={handleReset}
               title="清空对话"
-              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-slate-700/50 transition-all duration-200"
+              className="p-1.5 rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text-secondary)] hover:bg-slate-700/50 transition-all duration-200"
               aria-label="清空对话"
             >
               <RotateCcw size={15} />
@@ -215,7 +215,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-slate-600 text-center mt-2 tracking-wide">
+        <p className="text-[10px] text-[var(--color-text-dim)] text-center mt-2 tracking-wide">
           AI 生成内容仅供参考，请以数据库原始数据为准
         </p>
       </div>
@@ -223,18 +223,18 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       {/* Cypher modal */}
       {cypherModal && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+          className="fixed inset-0 bg-[var(--color-overlay)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
           onClick={() => setCypherModal(null)}
         >
           <div
-            className="bg-[#1e2130] border border-[#2d3150] rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-black/40 animate-scale-in"
+            className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-[var(--color-shadow)] animate-scale-in"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-slate-300">执行的 Cypher 查询</h3>
-              <button onClick={() => setCypherModal(null)} className="text-slate-500 hover:text-slate-300 text-lg leading-none">×</button>
+              <h3 className="text-sm font-semibold text-[var(--color-text-emphasis)]">执行的 Cypher 查询</h3>
+              <button onClick={() => setCypherModal(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg leading-none">×</button>
             </div>
-            <pre className="text-xs text-emerald-300 bg-[#0d0f1a] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap font-mono">
+            <pre className="text-xs text-emerald-300 bg-[var(--color-bg-code)] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap font-mono">
               {cypherModal}
             </pre>
           </div>
