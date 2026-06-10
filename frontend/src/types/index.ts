@@ -35,7 +35,7 @@ export interface Message {
 }
 
 /** 图谱布局类型 */
-export type LayoutType = 'dagre' | 'circle' | 'concentric' | 'breadthfirst' | 'cose' | 'grid' | 'random'
+export type LayoutType = 'dagre' | 'circle' | 'concentric' | 'breadthfirst' | 'cose' | 'grid'
 
 export const LAYOUT_OPTIONS: { value: LayoutType; label: string; icon: string }[] = [
   { value: 'dagre', label: '树状布局', icon: '├─' },
@@ -44,7 +44,6 @@ export const LAYOUT_OPTIONS: { value: LayoutType; label: string; icon: string }[
   { value: 'breadthfirst', label: '广度优先', icon: '↓' },
   { value: 'cose', label: '力导向', icon: '⚡' },
   { value: 'grid', label: '网格布局', icon: '⊞' },
-  { value: 'random', label: '随机布局', icon: '✦' },
 ]
 
 export interface AppConfig {

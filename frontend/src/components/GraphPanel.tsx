@@ -133,21 +133,19 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
 function getLayoutOptions(layout: LayoutType): cytoscape.LayoutOptions {
   switch (layout) {
     case 'dagre':
-      return { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 40 } as unknown as cytoscape.LayoutOptions
+      return { name: 'dagre', rankDir: 'TB', nodeSep: 90, rankSep: 120, padding: 50 } as unknown as cytoscape.LayoutOptions
     case 'circle':
-      return { name: 'circle', padding: 40 } as cytoscape.LayoutOptions
+      return { name: 'circle', padding: 50, spacingFactor: 1.25 } as unknown as cytoscape.LayoutOptions
     case 'concentric':
-      return { name: 'concentric', padding: 40, concentric: (node: cytoscape.NodeSingular) => node.degree(), levelWidth: () => 1 } as unknown as cytoscape.LayoutOptions
+      return { name: 'concentric', padding: 50, concentric: (node: cytoscape.NodeSingular) => node.degree(), levelWidth: () => 2, minNodeSpacing: 50 } as unknown as cytoscape.LayoutOptions
     case 'breadthfirst':
-      return { name: 'breadthfirst', directed: true, padding: 40, spacingFactor: 1.2 } as cytoscape.LayoutOptions
+      return { name: 'breadthfirst', directed: true, padding: 50, spacingFactor: 1.4 } as cytoscape.LayoutOptions
     case 'cose':
-      return { name: 'cose', padding: 40, nodeRepulsion: () => 8000, idealEdgeLength: () => 100 } as unknown as cytoscape.LayoutOptions
+      return { name: 'cose', padding: 50, nodeRepulsion: () => 12000, idealEdgeLength: () => 130, componentSpacing: 60 } as unknown as cytoscape.LayoutOptions
     case 'grid':
-      return { name: 'grid', padding: 40, rows: undefined } as cytoscape.LayoutOptions
-    case 'random':
-      return { name: 'random', padding: 40 } as cytoscape.LayoutOptions
+      return { name: 'grid', padding: 50, spacingFactor: 1.2 } as unknown as cytoscape.LayoutOptions
     default:
-      return { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 40 } as unknown as cytoscape.LayoutOptions
+      return { name: 'dagre', rankDir: 'TB', nodeSep: 90, rankSep: 120, padding: 50 } as unknown as cytoscape.LayoutOptions
   }
 }
 
