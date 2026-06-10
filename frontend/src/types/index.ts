@@ -25,12 +25,27 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
   displayContent: string
+  thinking?: string
+  queryResult?: string
   graphData?: GraphData
   cypher?: string
   timestamp: Date
   loading?: boolean
   error?: boolean
 }
+
+/** 图谱布局类型 */
+export type LayoutType = 'dagre' | 'circle' | 'concentric' | 'breadthfirst' | 'cose' | 'grid' | 'random'
+
+export const LAYOUT_OPTIONS: { value: LayoutType; label: string; icon: string }[] = [
+  { value: 'dagre', label: '树状布局', icon: '├─' },
+  { value: 'circle', label: '环状布局', icon: '◎' },
+  { value: 'concentric', label: '同心圆', icon: '◎' },
+  { value: 'breadthfirst', label: '广度优先', icon: '↓' },
+  { value: 'cose', label: '力导向', icon: '⚡' },
+  { value: 'grid', label: '网格布局', icon: '⊞' },
+  { value: 'random', label: '随机布局', icon: '✦' },
+]
 
 export interface AppConfig {
   difyApiKey: string

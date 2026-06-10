@@ -24,7 +24,6 @@
 1. 在 Dify 左侧菜单 → 「设置」→ 「模型供应商」
 2. 添加 **Google** 供应商，填入 Gemini API Key
 3. 在 Chatbot 中选择 `gemini-2.0-flash` 或 `gemini-1.5-pro`
-
 ---
 
 ## 第三步：添加 HTTP 工具（Neo4j 代理）

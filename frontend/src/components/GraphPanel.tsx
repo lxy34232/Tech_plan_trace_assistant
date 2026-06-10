@@ -2,10 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import CytoscapeComponent from 'react-cytoscapejs'
 import cytoscape from 'cytoscape'
 import dagre from 'cytoscape-dagre'
-import type { GraphData, GraphNode } from '../types'
-import { NODE_TYPE_COLOR, NODE_TYPE_LABEL, RELATION_TYPE_LABEL } from '../types'
+import type { GraphData, GraphNode, LayoutType } from '../types'
+import { NODE_TYPE_COLOR, NODE_TYPE_LABEL, RELATION_TYPE_LABEL, LAYOUT_OPTIONS } from '../types'
 import NodeDetail from './NodeDetail'
-import { ZoomIn, ZoomOut, Maximize2, Share2 } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Share2, Layout } from 'lucide-react'
 
 cytoscape.use(dagre)
 
@@ -130,17 +130,49 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
   return elements
 }
 
+function getLayoutOptions(layout: LayoutType): cytoscape.LayoutOptions {
+  switch (layout) {
+    case 'dagre':
+      return { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 40 } as unknown as cytoscape.LayoutOptions
+    case 'circle':
+      return { name: 'circle', padding: 40 } as cytoscape.LayoutOptions
+    case 'concentric':
+      return { name: 'concentric', padding: 40, concentric: (node: cytoscape.NodeSingular) => node.degree(), levelWidth: () => 1 } as unknown as cytoscape.LayoutOptions
+    case 'breadthfirst':
+      return { name: 'breadthfirst', directed: true, padding: 40, spacingFactor: 1.2 } as cytoscape.LayoutOptions
+    case 'cose':
+      return { name: 'cose', padding: 40, nodeRepulsion: () => 8000, idealEdgeLength: () => 100 } as unknown as cytoscape.LayoutOptions
+    case 'grid':
+      return { name: 'grid', padding: 40, rows: undefined } as cytoscape.LayoutOptions
+    case 'random':
+      return { name: 'random', padding: 40 } as cytoscape.LayoutOptions
+    default:
+      return { name: 'dagre', rankDir: 'TB', nodeSep: 60, rankSep: 80, padding: 40 } as unknown as cytoscape.LayoutOptions
+  }
+}
+
 export default function GraphPanel({ graphData }: Props) {
   const cyRef = useRef<cytoscape.Core | null>(null)
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [nodeCount, setNodeCount] = useState(0)
   const [edgeCount, setEdgeCount] = useState(0)
+  const [layout, setLayout] = useState<LayoutType>('dagre')
+  const [showLayoutMenu, setShowLayoutMenu] = useState(false)
 
   useEffect(() => {
     if (!graphData) return
     setNodeCount(graphData.nodes.length)
     setEdgeCount(graphData.edges.length)
   }, [graphData])
+
+  // Apply layout when changed or when graph data changes
+  useEffect(() => {
+    const cy = cyRef.current
+    if (!cy || !graphData || graphData.nodes.length === 0) return
+    const layoutOptions = getLayoutOptions(layout)
+    const layoutInstance = cy.layout(layoutOptions)
+    layoutInstance.run()
+  }, [layout, graphData])
 
   const handleCyInit = useCallback((cy: cytoscape.Core) => {
     cyRef.current = cy
@@ -191,6 +223,39 @@ export default function GraphPanel({ graphData }: Props) {
           <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 hover:text-slate-200 hover:border-indigo-500/40 hover:bg-[#252840] transition-all duration-200 backdrop-blur-sm">
             <Maximize2 size={15} />
           </button>
+
+          {/* Layout switcher */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLayoutMenu(!showLayoutMenu)}
+              title="切换布局"
+              aria-label="切换布局"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e2130]/90 border border-[#2d3150] text-slate-400 hover:text-slate-200 hover:border-indigo-500/40 hover:bg-[#252840] transition-all duration-200 backdrop-blur-sm"
+            >
+              <Layout size={14} />
+            </button>
+            {showLayoutMenu && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setShowLayoutMenu(false)} />
+                <div className="absolute left-10 top-0 z-30 bg-[#1e2130]/98 border border-[#2d3150] rounded-xl p-1.5 shadow-2xl shadow-black/40 backdrop-blur-xl min-w-[140px] animate-scale-in origin-top-left">
+                  {LAYOUT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setLayout(opt.value); setShowLayoutMenu(false) }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-2.5 transition-all duration-150 ${
+                        layout === opt.value
+                          ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-[#252840]'
+                      }`}
+                    >
+                      <span className="text-sm w-5 text-center">{opt.icon}</span>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
@@ -221,13 +286,7 @@ export default function GraphPanel({ graphData }: Props) {
           elements={elements}
           style={{ width: '100%', height: '100%', background: '#0f1117' }}
           stylesheet={CY_STYLE}
-          layout={{
-            name: 'dagre',
-            rankDir: 'TB',
-            nodeSep: 60,
-            rankSep: 80,
-            padding: 40,
-          } as unknown as cytoscape.LayoutOptions}
+          layout={{ name: 'preset' } as cytoscape.LayoutOptions}
           cy={handleCyInit}
         />
       </div>

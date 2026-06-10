@@ -8,7 +8,7 @@ import MessageBubble from './MessageBubble'
 interface Props {
   config: AppConfig
   onGraphData: (data: GraphData) => void
-  onShowGraph: () => void
+  onShowGraph: (data?: GraphData) => void
 }
 
 const SUGGESTED = [
@@ -59,6 +59,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       setIsLoading(true)
 
       let accumulated = ''
+      let thinkingAccumulated = ''
 
       await sendChatMessage(config, query, conversationId, {
         onToken: (token) => {
@@ -72,13 +73,23 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
             ),
           )
         },
-        onDone: (convId) => {
-          if (convId) setConversationId(convId)
-          const { displayContent, graphData, cypher } = parseAssistantResponse(accumulated)
+        onThinking: (thinking) => {
+          thinkingAccumulated += (thinkingAccumulated ? '\n\n' : '') + thinking
           setMessages(prev =>
             prev.map(m =>
               m.id === assistantId
-                ? { ...m, loading: false, content: accumulated, displayContent, graphData, cypher }
+                ? { ...m, thinking: thinkingAccumulated }
+                : m,
+            ),
+          )
+        },
+        onDone: (convId) => {
+          if (convId) setConversationId(convId)
+          const { displayContent, graphData, cypher, queryResult } = parseAssistantResponse(accumulated)
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === assistantId
+                ? { ...m, loading: false, content: accumulated, displayContent, graphData, cypher, queryResult, thinking: thinkingAccumulated || undefined }
                 : m,
             ),
           )
@@ -164,7 +175,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
               key={msg.id}
               message={msg}
               onShowCypher={setCypherModal}
-              onShowGraph={msg.graphData ? onShowGraph : undefined}
+              onShowGraph={msg.graphData ? () => onShowGraph(msg.graphData) : undefined}
             />
           ))
         )}

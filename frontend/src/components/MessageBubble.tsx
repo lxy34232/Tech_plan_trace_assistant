@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import type { Message } from '../types'
-import { Bot, User, Code2, GitBranch } from 'lucide-react'
+import { Bot, User, Code2, GitBranch, Brain, Database } from 'lucide-react'
 
 interface Props {
   message: Message
@@ -22,6 +23,8 @@ function renderMarkdown(text: string): string {
 
 export default function MessageBubble({ message, onShowCypher, onShowGraph }: Props) {
   const isUser = message.role === 'user'
+  const [showThinking, setShowThinking] = useState(false)
+  const [showQueryResult, setShowQueryResult] = useState(false)
 
   if (message.loading) {
     return (
@@ -79,9 +82,47 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           )}
         </div>
 
-        {/* Action buttons for assistant messages with graph data */}
+        {/* Collapsible: Thinking process */}
+        {!isUser && message.thinking && (
+          <div className="w-full">
+            <button
+              onClick={() => setShowThinking(!showThinking)}
+              className="text-xs px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200 flex items-center gap-1.5 w-full"
+            >
+              <Brain size={11} />
+              思考过程
+              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showThinking ? 'rotate-90' : ''}`}>▶</span>
+            </button>
+            {showThinking && (
+              <div className="mt-1.5 text-xs text-slate-400 bg-[#161820] border border-[#2d3150] rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
+                {message.thinking}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Collapsible: Query result (raw JSON) */}
+        {!isUser && message.queryResult && (
+          <div className="w-full">
+            <button
+              onClick={() => setShowQueryResult(!showQueryResult)}
+              className="text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all duration-200 flex items-center gap-1.5 w-full"
+            >
+              <Database size={11} />
+              查询结果数据
+              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showQueryResult ? 'rotate-90' : ''}`}>▶</span>
+            </button>
+            {showQueryResult && (
+              <div className="mt-1.5 text-xs text-emerald-300 bg-[#0d0f1a] border border-emerald-500/20 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
+                {message.queryResult}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action buttons for assistant messages */}
         {!isUser && (message.graphData || message.cypher) && (
-          <div className="flex gap-2 mt-1">
+          <div className="flex gap-2 mt-1 flex-wrap">
             {message.graphData && message.graphData.nodes.length > 0 && (
               <button
                 onClick={onShowGraph}

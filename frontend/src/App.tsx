@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Header from './components/Header'
 import ChatPanel from './components/ChatPanel'
 import GraphPanel from './components/GraphPanel'
@@ -7,6 +7,7 @@ import type { AppConfig, GraphData } from './types'
 import { DEFAULT_CONFIG } from './types'
 
 const CONFIG_KEY = 'doors_trace_config'
+const PANEL_WIDTH_KEY = 'doors_trace_panel_width'
 
 function loadConfig(): AppConfig {
   try {
@@ -20,12 +21,26 @@ function saveConfig(config: AppConfig) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(config))
 }
 
+function loadPanelWidth(): number {
+  try {
+    const stored = localStorage.getItem(PANEL_WIDTH_KEY)
+    if (stored) return parseInt(stored, 10)
+  } catch { /* ignore */ }
+  return 480
+}
+
+function savePanelWidth(width: number) {
+  localStorage.setItem(PANEL_WIDTH_KEY, String(width))
+}
+
 export default function App() {
   const [config, setConfig] = useState<AppConfig>(loadConfig)
   const [showConfig, setShowConfig] = useState(false)
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   const [activeTab, setActiveTab] = useState<'chat' | 'graph'>('chat')
   const [isMobile, setIsMobile] = useState(false)
+  const [panelWidth, setPanelWidth] = useState(loadPanelWidth)
+  const isResizing = useRef(false)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -48,9 +63,41 @@ export default function App() {
     if (isMobile) setActiveTab('graph')
   }, [isMobile])
 
-  const handleShowGraph = useCallback(() => {
+  const handleShowGraph = useCallback((data?: GraphData) => {
+    if (data) setGraphData(data)
     if (isMobile) setActiveTab('graph')
   }, [isMobile])
+
+  // Resize handlers
+  const handleResizeStart = useCallback(() => {
+    isResizing.current = true
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return
+      const minWidth = 320
+      const maxWidth = window.innerWidth * 0.55
+      const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth)
+      setPanelWidth(newWidth)
+    }
+    const handleMouseUp = () => {
+      if (isResizing.current) {
+        isResizing.current = false
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        savePanelWidth(panelWidth)
+      }
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [panelWidth])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -72,8 +119,16 @@ export default function App() {
           </div>
         ) : (
           <>
-            <div className="w-[480px] min-w-[360px] max-w-[50%] border-r border-[#2d3150] flex flex-col min-h-0">
+            <div className="flex flex-col min-h-0 border-r border-[#2d3150]" style={{ width: panelWidth, minWidth: 320, maxWidth: '55%' }}>
               <ChatPanel config={config} onGraphData={handleGraphData} onShowGraph={handleShowGraph} />
+            </div>
+            {/* Resize handle */}
+            <div
+              className="w-1.5 cursor-col-resize bg-transparent hover:bg-indigo-500/40 active:bg-indigo-500/60 transition-colors duration-150 shrink-0 relative group"
+              onMouseDown={handleResizeStart}
+            >
+              <div className="absolute inset-y-0 -left-1 -right-1" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-[#3d4474] group-hover:bg-indigo-400 group-active:bg-indigo-300 transition-colors duration-150" />
             </div>
             <div className="flex-1 flex flex-col min-h-0 min-w-0">
               <GraphPanel graphData={graphData} />

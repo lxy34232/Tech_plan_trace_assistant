@@ -1,11 +1,22 @@
 import type { GraphData } from '../types'
 
-// Extracts a ```json ... ``` block from the end of LLM response.
-// Returns { displayContent, graphData, cypher }.
+/**
+ * Parse the raw LLM response accumulated from SSE stream.
+ *
+ * The raw response typically contains:
+ *   1. Natural language summary (displayed in chat bubble)
+ *   2. A ```json ... ``` block with graph_data and optional cypher
+ *
+ * The thinking content is captured separately via onThinking callback
+ * and passed in from ChatPanel.
+ *
+ * Returns { displayContent, graphData, cypher, queryResult }.
+ */
 export function parseAssistantResponse(raw: string): {
   displayContent: string
   graphData?: GraphData
   cypher?: string
+  queryResult?: string
 } {
   const jsonBlockRegex = /```json\s*([\s\S]*?)\s*```\s*$/
   const match = raw.match(jsonBlockRegex)
@@ -23,6 +34,7 @@ export function parseAssistantResponse(raw: string): {
       displayContent,
       graphData: parsed.graph_data ?? undefined,
       cypher: parsed.cypher ?? undefined,
+      queryResult: jsonText.trim(),
     }
   } catch {
     return { displayContent: raw.trim() }

@@ -47,7 +47,7 @@ description: 'Design premium, beautiful, modern frontend UI for web applications
 
 **配色规则**：
 - 文字与背景对比度至少 4.5:1（WCAG AA 标准）
-- 使用 `text-[color]` 而非硬编码颜色值
+- 使用 TailwindCSS 任意值语法 `[#hexcolor]` 引用主题色变量，保持颜色来源一致
 - 渐变使用相邻色相，不超过 3 个色阶
 
 ### 2.3 排版系统

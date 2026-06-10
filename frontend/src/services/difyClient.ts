@@ -2,6 +2,7 @@ import type { AppConfig } from '../types'
 
 export interface StreamCallbacks {
   onToken: (token: string) => void
+  onThinking: (thinking: string) => void
   onDone: (conversationId: string, messageId: string) => void
   onError: (error: string) => void
 }
@@ -72,6 +73,24 @@ export async function sendChatMessage(
           callbacks.onToken(event.answer)
           if (event.conversation_id) convId = event.conversation_id
           if (event.message_id) msgId = event.message_id
+        } else if (event.event === 'agent_thought') {
+          // Capture agent thinking process (reasoning + tool calls + observations)
+          let thinkingParts: string[] = []
+          if (event.thought) {
+            thinkingParts.push(`💭 思考：${event.thought}`)
+          }
+          if (event.tool) {
+            thinkingParts.push(`🔧 调用工具：${event.tool}`)
+          }
+          if (event.tool_input) {
+            thinkingParts.push(`📥 工具输入：${event.tool_input}`)
+          }
+          if (event.observation) {
+            thinkingParts.push(`📤 工具输出：${event.observation}`)
+          }
+          if (thinkingParts.length > 0) {
+            callbacks.onThinking(thinkingParts.join('\n'))
+          }
         } else if (event.event === 'message_end' || event.event === 'agent_message_end') {
           if (event.conversation_id) convId = event.conversation_id
           if (event.message_id) msgId = event.message_id
