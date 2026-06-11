@@ -6,7 +6,7 @@ import type { GraphData, GraphNode, LayoutType } from '../types'
 import { NODE_TYPE_COLOR, NODE_TYPE_LABEL, RELATION_TYPE_LABEL, LAYOUT_OPTIONS } from '../types'
 import NodeDetail from './NodeDetail'
 import { useTheme } from '../contexts/ThemeContext'
-import { ZoomIn, ZoomOut, Maximize2, Share2, Layout } from 'lucide-react'
+import { ZoomIn, ZoomOut, Maximize2, Share2, Layout, Sliders } from 'lucide-react'
 
 cytoscape.use(dagre)
 
@@ -14,8 +14,8 @@ interface Props {
   graphData: GraphData | null
 }
 
-/** Cytoscape styles that depend on dark/light theme */
-function buildCyStyle(isDark: boolean) {
+/** Cytoscape styles that depend on dark/light theme and node size */
+function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
   const textColor = isDark ? '#e2e8f0' : '#1e293b'
   const textBg = isDark ? '#0f1117' : '#f8fafc'
   const edgeColor = isDark ? '#94a3b8' : '#64748b'
@@ -38,8 +38,8 @@ function buildCyStyle(isDark: boolean) {
         'text-background-opacity': 0.85,
         'text-background-padding': '2px',
         'text-background-shape': 'roundrectangle',
-        width: 42,
-        height: 42,
+        width: nodeSize,
+        height: nodeSize,
         'border-width': 2.5,
         'border-color': 'data(borderColor)',
         'transition-property': 'border-width, border-color',
@@ -139,22 +139,20 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
   return elements
 }
 
-function getLayoutOptions(layout: LayoutType): cytoscape.LayoutOptions {
+function getLayoutOptions(layout: LayoutType, nodeSpacing: number = 1): cytoscape.LayoutOptions {
+  const baseSep = 90
+  const baseRankSep = 120
+  const baseSpacing = 20
+  
   switch (layout) {
     case 'dagre':
-      return { name: 'dagre', rankDir: 'TB', nodeSep: 90, rankSep: 120, padding: 50 } as unknown as cytoscape.LayoutOptions
+      return { name: 'dagre', rankDir: 'TB', nodeSep: baseSep * nodeSpacing, rankSep: baseRankSep * nodeSpacing, padding: 50 } as unknown as cytoscape.LayoutOptions
     case 'circle':
-      return { name: 'circle', padding: 50, avoidOverlap: true, spacing: 20 } as unknown as cytoscape.LayoutOptions
-    case 'concentric':
-      return { name: 'concentric', padding: 50, concentric: (node: cytoscape.NodeSingular) => node.degree(), levelWidth: () => 2, minNodeSpacing: 50, avoidOverlap: true } as unknown as cytoscape.LayoutOptions
-    case 'breadthfirst':
-      return { name: 'breadthfirst', directed: true, padding: 50, spacingFactor: 1.4, avoidOverlap: true } as cytoscape.LayoutOptions
-    case 'cose':
-      return { name: 'cose', padding: 50, nodeRepulsion: () => 12000, idealEdgeLength: () => 130, componentSpacing: 60 } as unknown as cytoscape.LayoutOptions
+      return { name: 'circle', padding: 50, avoidOverlap: true, spacing: baseSpacing * nodeSpacing } as unknown as cytoscape.LayoutOptions
     case 'grid':
       return { name: 'grid', padding: 50, avoidOverlap: true, condense: false } as unknown as cytoscape.LayoutOptions
     default:
-      return { name: 'dagre', rankDir: 'TB', nodeSep: 90, rankSep: 120, padding: 50 } as unknown as cytoscape.LayoutOptions
+      return { name: 'dagre', rankDir: 'TB', nodeSep: baseSep * nodeSpacing, rankSep: baseRankSep * nodeSpacing, padding: 50 } as unknown as cytoscape.LayoutOptions
   }
 }
 
@@ -165,10 +163,14 @@ export default function GraphPanel({ graphData }: Props) {
   const [edgeCount, setEdgeCount] = useState(0)
   const [layout, setLayout] = useState<LayoutType>('dagre')
   const [showLayoutMenu, setShowLayoutMenu] = useState(false)
+  const [cyInitialized, setCyInitialized] = useState(false)
+  const [nodeSize, setNodeSize] = useState(42)
+  const [nodeSpacing, setNodeSpacing] = useState(1)
+  const [showSettings, setShowSettings] = useState(false)
 
   const { theme } = useTheme()
   const isDark = theme === 'dark'
-  const cyStyle = useMemo(() => buildCyStyle(isDark), [isDark])
+  const cyStyle = useMemo(() => buildCyStyle(isDark, nodeSize), [isDark, nodeSize])
   const canvasBg = isDark ? '#0f1117' : '#f8fafc'
 
   useEffect(() => {
@@ -185,23 +187,24 @@ export default function GraphPanel({ graphData }: Props) {
     cy.style().fromJson(cyStyle as any).update()
   }, [cyStyle])
 
-  // Apply layout when changed or when graph data changes
+  // Apply layout when changed or when graph data changes or when cy is initialized
   useEffect(() => {
     const cy = cyRef.current
-    if (!cy || !graphData || graphData.nodes.length === 0) return
-    // Wait until elements are synced into the cy instance
-    if (cy.nodes().length === 0) {
-      const onAdd = () => {
-        cy.off('add', onAdd)
-        const opts = getLayoutOptions(layout)
+    if (!cy || !graphData || graphData.nodes.length === 0 || !cyInitialized) return
+
+    // Use a more reliable approach: repeatedly check if nodes are loaded
+    const applyLayout = () => {
+      if (cy.nodes().length > 0) {
+        const opts = getLayoutOptions(layout, nodeSpacing)
         cy.layout(opts).run()
+      } else {
+        // Retry in 50ms if nodes not yet loaded
+        setTimeout(applyLayout, 50)
       }
-      cy.on('add', onAdd)
-      return
     }
-    const opts = getLayoutOptions(layout)
-    cy.layout(opts).run()
-  }, [layout, graphData])
+
+    applyLayout()
+  }, [layout, graphData, cyInitialized, nodeSpacing])
 
   const handleCyInit = useCallback((cy: cytoscape.Core) => {
     cyRef.current = cy
@@ -213,6 +216,9 @@ export default function GraphPanel({ graphData }: Props) {
     cy.on('tap', (evt) => {
       if (evt.target === cy) setSelectedNode(null)
     })
+
+    // Mark as initialized to trigger layout application
+    setCyInitialized(true)
   }, [])
 
   const handleFit = () => cyRef.current?.fit(undefined, 40)
@@ -229,7 +235,7 @@ export default function GraphPanel({ graphData }: Props) {
         </div>
         <div className="text-center space-y-1">
           <p className="text-sm font-medium text-[var(--color-text-muted)]">追溯图谱可视化</p>
-          <p className="text-xs text-[var(--color-text-dim)]">向 AI 提问后，系统将自动生成知识图谱</p>
+          <p className="text-xs text-[var(--color-text-dim)]">向 AI 提问后，系统将自动生成追溯图谱</p>
         </div>
       </div>
     )
@@ -281,6 +287,54 @@ export default function GraphPanel({ graphData }: Props) {
                       {opt.label}
                     </button>
                   ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Settings button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              title="图形设置"
+              aria-label="图形设置"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm"
+            >
+              <Sliders size={14} />
+            </button>
+            {showSettings && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setShowSettings(false)} />
+                <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-3 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl w-56 animate-scale-in origin-top-left space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点大小</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="20"
+                        max="100"
+                        value={nodeSize}
+                        onChange={(e) => setNodeSize(Number(e.target.value))}
+                        className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer"
+                      />
+                      <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSize}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点间距</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="3"
+                        step="0.1"
+                        value={nodeSpacing}
+                        onChange={(e) => setNodeSpacing(Number(e.target.value))}
+                        className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer"
+                      />
+                      <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSpacing.toFixed(1)}</span>
+                    </div>
+                  </div>
                 </div>
               </>
             )}

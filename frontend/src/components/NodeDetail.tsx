@@ -1,4 +1,5 @@
-import { X, Hash, Calendar, FileText, Tag } from 'lucide-react'
+import { X, Hash, Calendar, FileText, Tag, Copy, Check } from 'lucide-react'
+import { useState } from 'react'
 import type { GraphNode } from '../types'
 import { NODE_TYPE_COLOR, NODE_TYPE_LABEL } from '../types'
 
@@ -31,7 +32,15 @@ const PRIORITY_COLORS: Record<string, string> = {
 }
 
 export default function NodeDetail({ node, onClose }: Props) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
   if (!node) return null
+
+  const handleCopy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2000)
+  }
 
   const color = NODE_TYPE_COLOR[node.type] ?? '#64748b'
   const typeLabel = NODE_TYPE_LABEL[node.type] ?? node.type
@@ -114,8 +123,18 @@ export default function NodeDetail({ node, onClose }: Props) {
                 {rows.map(({ key, label, value }) => (
                   <div key={key} className="text-sm group">
                     <div className="text-[11px] text-[var(--color-text-muted)] mb-1 font-medium">{label}</div>
-                    <div className="bg-[var(--color-bg-input)] rounded-lg px-3 py-2.5 border border-[var(--color-border)]/50 group-hover:border-[var(--color-border)] transition-colors duration-200">
-                      {getValueBadge(key, value)}
+                    <div className="flex gap-2 items-stretch bg-[var(--color-bg-input)] rounded-lg border border-[var(--color-border)]/50 group-hover:border-[var(--color-border)] transition-colors duration-200 overflow-hidden">
+                      <div className="flex-1 px-3 py-2.5">
+                        {getValueBadge(key, value)}
+                      </div>
+                      <button
+                        onClick={() => handleCopy(formatValue(value), key)}
+                        className="px-2.5 flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-600/30 transition-all duration-200 border-l border-[var(--color-border)]/50"
+                        title="复制"
+                        aria-label="复制"
+                      >
+                        {copiedKey === key ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                      </button>
                     </div>
                   </div>
                 ))}
