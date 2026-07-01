@@ -16,42 +16,51 @@ interface Props {
 
 /** Cytoscape styles that depend on dark/light theme and node size */
 function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
-  const textColor = isDark ? '#e2e8f0' : '#1e293b'
-  const textBg = isDark ? '#0f1117' : '#f8fafc'
-  const edgeColor = isDark ? '#94a3b8' : '#64748b'
-  const edgeLabelColor = isDark ? '#64748b' : '#475569'
-  const selectedOverlay = isDark ? '#ffffff' : '#1e293b'
+  const scale = nodeSize / 42
+  const fontSize = Math.round(Math.max(9, Math.min(14, scale * 11)))
+  const padding = Math.round(Math.max(8, Math.min(18, scale * 12)))
+  const maxWidth = Math.round(scale * 110)
+
+  const edgeColor = isDark ? '#6b7a99' : '#8094b0'
+  const edgeLabelColor = isDark ? '#94a3b8' : '#475569'
+  const edgeLabelBg = isDark ? '#0f1117' : '#f8fafc'
+  const selectedBorder = isDark ? '#ffffff' : '#1e293b'
 
   return [
     {
       selector: 'node',
       style: {
+        shape: 'roundrectangle',
+        'corner-radius': 6,
         'background-color': 'data(color)',
+        'background-opacity': 0.9,
         label: 'data(label)',
-        color: textColor,
-        'font-size': 11,
-        'text-wrap': 'ellipsis',
-        'text-max-width': '110px',
-        'text-valign': 'bottom',
-        'text-margin-y': 6,
-        'text-background-color': textBg,
-        'text-background-opacity': 0.85,
-        'text-background-padding': '2px',
-        'text-background-shape': 'roundrectangle',
-        width: nodeSize,
-        height: nodeSize,
-        'border-width': 2.5,
+        color: '#ffffff',
+        'font-size': fontSize,
+        'font-weight': 500,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'text-wrap': 'wrap',
+        'text-max-width': `${maxWidth}px`,
+        width: 'label',
+        height: 'label',
+        padding,
+        'text-outline-color': 'rgba(0,0,0,0.4)',
+        'text-outline-width': 1,
+        'text-outline-opacity': 0.6,
+        'border-width': 2,
         'border-color': 'data(borderColor)',
-        'transition-property': 'border-width, border-color',
+        'transition-property': 'border-width, border-color, background-opacity',
         'transition-duration': '0.2s',
       },
     },
     {
       selector: 'node:selected',
       style: {
-        'border-width': 4,
-        'border-color': selectedOverlay,
-        'overlay-color': selectedOverlay,
+        'border-width': 3,
+        'border-color': selectedBorder,
+        'border-opacity': 1,
+        'overlay-color': selectedBorder,
         'overlay-opacity': 0.12,
         'overlay-padding': 4,
       },
@@ -59,8 +68,9 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
     {
       selector: 'node.highlighted',
       style: {
-        'border-width': 3,
+        'border-width': 2.5,
         'border-color': '#a5b4fc',
+        'border-opacity': 1,
         'overlay-color': '#a5b4fc',
         'overlay-opacity': 0.08,
       },
@@ -76,8 +86,8 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
         label: 'data(label)',
         'font-size': 9,
         color: edgeLabelColor,
-        'text-background-color': textBg,
-        'text-background-opacity': 0.9,
+        'text-background-color': edgeLabelBg,
+        'text-background-opacity': 0.88,
         'text-background-padding': '3px',
         'text-background-shape': 'roundrectangle',
         'transition-property': 'line-color, target-arrow-color, width',

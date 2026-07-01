@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import CytoscapeComponent from 'react-cytoscapejs'
 import cytoscape from 'cytoscape'
 import dagre from 'cytoscape-dagre'
 import { ChevronDown, ChevronUp, Database, Plus, RefreshCw } from 'lucide-react'
 import type { SchemaData, SchemaNodeDef, Condition } from '../types'
 import { getNodeColor, NODE_TYPE_LABEL } from '../types'
+import { useTheme } from '../contexts/ThemeContext'
 
 cytoscape.use(dagre)
 
@@ -26,6 +27,69 @@ function loadSchemaHeight(): number {
   return 200
 }
 
+function buildSchemaStyle(isDark: boolean) {
+  const edgeColor = isDark ? '#4d5780' : '#8094b0'
+  const edgeLabelColor = isDark ? '#94a3b8' : '#475569'
+  const edgeLabelBg = isDark ? '#0f1117' : '#f8fafc'
+  const selectedBorder = isDark ? '#ffffff' : '#1e293b'
+
+  return [
+    {
+      selector: 'node',
+      style: {
+        shape: 'roundrectangle',
+        'corner-radius': 6,
+        'background-color': 'data(color)',
+        'background-opacity': 0.9,
+        label: 'data(label)',
+        color: '#ffffff',
+        'font-size': 10,
+        'font-weight': 600,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'text-wrap': 'wrap',
+        'text-max-width': '80px',
+        width: 'label',
+        height: 'label',
+        padding: 10,
+        'text-outline-color': 'rgba(0,0,0,0.4)',
+        'text-outline-width': 1,
+        'text-outline-opacity': 0.6,
+        'border-width': 1.5,
+        'border-color': 'data(borderColor)',
+      },
+    },
+    {
+      selector: 'node:selected',
+      style: {
+        'border-width': 2.5,
+        'border-color': selectedBorder,
+        'border-opacity': 1,
+        'overlay-color': selectedBorder,
+        'overlay-opacity': 0.1,
+        'overlay-padding': 3,
+      },
+    },
+    {
+      selector: 'edge',
+      style: {
+        width: 1.5,
+        'line-color': edgeColor,
+        'target-arrow-color': edgeColor,
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        label: 'data(label)',
+        'font-size': 8,
+        color: edgeLabelColor,
+        'text-background-color': edgeLabelBg,
+        'text-background-opacity': 0.85,
+        'text-background-padding': '2px',
+        'text-background-shape': 'roundrectangle',
+      },
+    },
+  ]
+}
+
 function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] {
   const elements: cytoscape.ElementDefinition[] = []
 
@@ -36,6 +100,7 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
         id: node.label,
         label: NODE_TYPE_LABEL[node.label] ?? node.label,
         color,
+        borderColor: color + 'aa',
         raw: node,
       },
     })
@@ -59,55 +124,11 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
   return elements
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SCHEMA_STYLE: any[] = [
-  {
-    selector: 'node',
-    style: {
-      'background-color': 'data(color)',
-      label: 'data(label)',
-      color: '#e2e8f0',
-      'font-size': 10,
-      'font-weight': 600,
-      'text-valign': 'center',
-      'text-halign': 'center',
-      'text-wrap': 'wrap',
-      'text-max-width': '70px',
-      width: 52,
-      height: 52,
-      'border-width': 2,
-      'border-color': 'transparent',
-    },
-  },
-  {
-    selector: 'node:selected',
-    style: {
-      'border-width': 2.5,
-      'border-color': '#ffffff',
-      'overlay-opacity': 0.08,
-      'overlay-color': '#ffffff',
-    },
-  },
-  {
-    selector: 'edge',
-    style: {
-      width: 1.5,
-      'line-color': '#52587a',
-      'target-arrow-color': '#52587a',
-      'target-arrow-shape': 'triangle',
-      'curve-style': 'bezier',
-      label: 'data(label)',
-      'font-size': 8,
-      color: '#94a3b8',
-      'text-background-opacity': 0,
-      'text-outline-color': '#1e2130',
-      'text-outline-width': 2,
-      'text-outline-opacity': 0.85,
-    },
-  },
-]
-
 export default function SchemaPanel({ schema, loading, error, onAddCondition, onRetry }: Props) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  const schemaStyle = useMemo(() => buildSchemaStyle(isDark), [isDark])
+
   const [expanded, setExpanded] = useState(true)
   const [selectedNode, setSelectedNode] = useState<SchemaNodeDef | null>(null)
   const [graphHeight, setGraphHeight] = useState(loadSchemaHeight)
@@ -149,6 +170,14 @@ export default function SchemaPanel({ schema, loading, error, onAddCondition, on
       window.removeEventListener('mouseup', handleMouseUp)
     }
   }, [])
+
+  // Update Cytoscape styles when theme changes
+  useEffect(() => {
+    const cy = cyRef.current
+    if (!cy) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    cy.style().fromJson(schemaStyle as any).update()
+  }, [schemaStyle])
 
   const handleCyInit = useCallback((cy: cytoscape.Core) => {
     cyRef.current = cy
@@ -207,7 +236,7 @@ export default function SchemaPanel({ schema, loading, error, onAddCondition, on
                 <CytoscapeComponent
                   elements={buildSchemaElements(schema)}
                   style={{ width: '100%', height: '100%', background: 'transparent' }}
-                  stylesheet={SCHEMA_STYLE}
+                  stylesheet={schemaStyle as unknown as cytoscape.StylesheetCSS[]}
                   layout={{
                     name: 'dagre',
                     rankDir: 'LR',
