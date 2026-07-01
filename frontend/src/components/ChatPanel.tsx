@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SendHorizonal, RotateCcw, BookOpen } from 'lucide-react'
-import type { Message, AppConfig, GraphData } from '../types'
+import type { Message, AppConfig, GraphData, SchemaData, Condition } from '../types'
+import { NODE_TYPE_LABEL } from '../types'
 import { sendChatMessage } from '../services/difyClient'
+import { fetchSchema } from '../services/schemaClient'
 import { parseAssistantResponse } from '../utils/responseParser'
 import MessageBubble from './MessageBubble'
+import SchemaPanel from './SchemaPanel'
+import ConditionBar from './ConditionBar'
 
 interface Props {
   config: AppConfig
@@ -24,8 +28,40 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [cypherModal, setCypherModal] = useState<string | null>(null)
+  const [conditions, setConditions] = useState<Condition[]>([])
+  const [schema, setSchema] = useState<SchemaData | null>(null)
+  const [schemaLoading, setSchemaLoading] = useState(false)
+  const [schemaError, setSchemaError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const loadSchema = useCallback(async () => {
+    if (!config.proxyUrl) return
+    setSchemaLoading(true)
+    setSchemaError(null)
+    try {
+      const data = await fetchSchema(config.proxyUrl, config.proxyApiKey)
+      setSchema(data)
+    } catch (e) {
+      setSchemaError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setSchemaLoading(false)
+    }
+  }, [config.proxyUrl, config.proxyApiKey])
+
+  useEffect(() => { loadSchema() }, [loadSchema])
+
+  const handleAddCondition = useCallback((cond: Omit<Condition, 'id'>) => {
+    setConditions(prev => {
+      const duplicate = prev.some(c => c.nodeType === cond.nodeType && c.property === cond.property)
+      if (duplicate) return prev
+      return [...prev, { ...cond, id: crypto.randomUUID() }]
+    })
+  }, [])
+
+  const handleRemoveCondition = useCallback((id: string) => {
+    setConditions(prev => prev.filter(c => c.id !== id))
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -36,11 +72,24 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       const query = text.trim()
       if (!query || isLoading) return
 
+      // Prepend condition context if chips are selected
+      let finalQuery = query
+      if (conditions.length > 0) {
+        const condStr = conditions
+          .map(c => c.property
+            ? `${NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType}(${c.property})`
+            : (NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType)
+          )
+          .join('、')
+        finalQuery = `【查询条件：${condStr}】${query}`
+      }
+      setConditions([])
+
       const userMsg: Message = {
         id: crypto.randomUUID(),
         role: 'user',
-        content: query,
-        displayContent: query,
+        content: finalQuery,
+        displayContent: finalQuery,
         timestamp: new Date(),
       }
 
@@ -61,7 +110,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       let accumulated = ''
       let thinkingAccumulated = ''
 
-      await sendChatMessage(config, query, conversationId, {
+      await sendChatMessage(config, finalQuery, conversationId, {
         onToken: (token) => {
           accumulated += token
           const { displayContent } = parseAssistantResponse(accumulated)
@@ -129,6 +178,15 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-bg-primary)]">
+      {/* Schema panel */}
+      <SchemaPanel
+        schema={schema}
+        loading={schemaLoading}
+        error={schemaError}
+        onAddCondition={handleAddCondition}
+        onRetry={loadSchema}
+      />
+
       {/* Message list */}
       <div className="flex-1 overflow-y-auto py-2">
         {messages.length === 0 ? (
@@ -181,6 +239,13 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
         )}
         <div ref={bottomRef} />
       </div>
+
+      {/* Condition chips */}
+      <ConditionBar
+        conditions={conditions}
+        onRemove={handleRemoveCondition}
+        onClear={() => setConditions([])}
+      />
 
       {/* Input area */}
       <div className="border-t border-[var(--color-border)] p-4 bg-gradient-to-t from-[var(--color-bg-primary)] to-transparent">

@@ -57,6 +57,44 @@ export const DEFAULT_CONFIG: AppConfig = {
   proxyApiKey: import.meta.env.VITE_PROXY_API_KEY ?? '',
 }
 
+// ── Schema (DB topology) ──────────────────────────────────────
+export interface SchemaNodeDef {
+  label: string
+  properties: string[]
+}
+
+export interface SchemaRelDef {
+  type: string
+  from: string
+  to: string
+}
+
+export interface SchemaData {
+  nodes: SchemaNodeDef[]
+  relationships: SchemaRelDef[]
+}
+
+// ── Condition chips ───────────────────────────────────────────
+export interface Condition {
+  id: string
+  nodeType: string        // e.g. "TechRequirement"
+  property?: string       // e.g. "priority" — absent when whole node type selected
+}
+
+// ── Node color palette ────────────────────────────────────────
+const PALETTE = [
+  '#3b82f6','#a855f7','#f59e0b','#10b981','#ef4444',
+  '#06b6d4','#f97316','#84cc16','#ec4899','#8b5cf6',
+]
+
+export function getNodeColor(label: string): string {
+  if (NODE_TYPE_COLOR[label]) return NODE_TYPE_COLOR[label]
+  // deterministic color for unknown labels
+  let hash = 0
+  for (let i = 0; i < label.length; i++) hash = (hash * 31 + label.charCodeAt(i)) & 0xffffffff
+  return PALETTE[Math.abs(hash) % PALETTE.length]
+}
+
 export const NODE_TYPE_COLOR: Record<string, string> = {
   TechOutline: '#3b82f6',
   TechText: '#a855f7',

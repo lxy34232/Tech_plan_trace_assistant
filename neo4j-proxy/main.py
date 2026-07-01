@@ -119,8 +119,35 @@ async def health():
 
 
 @app.get("/schema")
-async def get_schema():
-    return SCHEMA_INFO
+async def get_schema(api_key: str = Security(api_key_header)):
+    check_api_key(api_key)
+    try:
+        with driver.session(database=NEO4J_DATABASE) as session:
+            # Discover all node labels and their properties
+            labels_result = list(session.run("CALL db.labels() YIELD label RETURN label ORDER BY label"))
+            nodes = []
+            for record in labels_result:
+                label = record["label"]
+                props_result = list(session.run(
+                    f"MATCH (n:`{label}`) RETURN keys(n) AS props LIMIT 1"
+                ))
+                props = sorted(props_result[0]["props"]) if props_result else []
+                nodes.append({"label": label, "properties": props})
+
+            # Discover all relationship types with their actual source/target labels
+            rels_result = list(session.run(
+                "MATCH (a)-[r]->(b) "
+                "RETURN DISTINCT labels(a)[0] AS from_label, type(r) AS rel_type, labels(b)[0] AS to_label"
+            ))
+            relationships = [
+                {"type": r["rel_type"], "from": r["from_label"], "to": r["to_label"]}
+                for r in rels_result
+            ]
+
+            return {"nodes": nodes, "relationships": relationships}
+    except Exception as exc:
+        # Fall back to static schema if dynamic discovery fails
+        return SCHEMA_INFO
 
 
 @app.post("/query")
