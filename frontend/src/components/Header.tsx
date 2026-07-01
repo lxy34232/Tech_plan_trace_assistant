@@ -19,10 +19,10 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
       {/* Brand */}
       <div className="flex items-center gap-2.5 mr-auto">
         <div className="relative">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C70019] to-[#8a0011] flex items-center justify-center shadow-lg shadow-[rgba(199,0,25,0.25)]">
             <Share2 size={15} className="text-white" />
           </div>
-          <div className="absolute inset-0 rounded-lg ring-1 ring-indigo-400/20" />
+          <div className="absolute inset-0 rounded-lg ring-1 ring-[#C70019]/20" />
         </div>
         <div className="leading-tight">
           <div className="text-sm font-semibold text-[var(--color-text-primary)] tracking-tight">科技规划问答追溯助手</div>

@@ -151,7 +151,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all duration-200 shadow-sm shadow-indigo-600/20 font-medium"
+            className="px-5 py-2 text-sm bg-[#C70019] hover:bg-[#e0001c] text-white rounded-lg transition-all duration-200 shadow-sm shadow-[rgba(199,0,25,0.25)] font-medium"
           >
             保存配置
           </button>
