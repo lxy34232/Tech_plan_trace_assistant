@@ -6,14 +6,10 @@ interface Props {
   conditions: Condition[]
   onRemove: (id: string) => void
   onClear: () => void
+  onUpdateValue: (id: string, value: string) => void
 }
 
-function chipLabel(c: Condition): string {
-  const nodeLabel = NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType
-  return c.property ? `${nodeLabel} · ${c.property}` : nodeLabel
-}
-
-export default function ConditionBar({ conditions, onRemove, onClear }: Props) {
+export default function ConditionBar({ conditions, onRemove, onClear, onUpdateValue }: Props) {
   if (conditions.length === 0) return null
 
   return (
@@ -22,6 +18,7 @@ export default function ConditionBar({ conditions, onRemove, onClear }: Props) {
       <div className="flex gap-1.5 flex-wrap flex-1 min-w-0">
         {conditions.map(c => {
           const color = getNodeColor(c.nodeType)
+          const nodeLabel = NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType
           return (
             <span
               key={c.id}
@@ -32,7 +29,24 @@ export default function ConditionBar({ conditions, onRemove, onClear }: Props) {
                 color,
               }}
             >
-              {chipLabel(c)}
+              {c.property ? `${nodeLabel} · ${c.property}` : nodeLabel}
+              {c.property && (
+                <>
+                  <span className="opacity-50 mx-0.5">=</span>
+                  <input
+                    type="text"
+                    value={c.value ?? ''}
+                    onChange={e => onUpdateValue(c.id, e.target.value)}
+                    placeholder="值…"
+                    className="bg-transparent outline-none border-b border-current/30 focus:border-current/70 transition-colors text-xs placeholder-current/40"
+                    style={{
+                      color: 'inherit',
+                      minWidth: '40px',
+                      width: `${Math.max(40, (c.value?.length ?? 0) * 7 + 20)}px`,
+                    }}
+                  />
+                </>
+              )}
               <button
                 onClick={() => onRemove(c.id)}
                 className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity rounded-full"
