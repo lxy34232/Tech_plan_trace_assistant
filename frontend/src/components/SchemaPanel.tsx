@@ -16,6 +16,16 @@ interface Props {
   onRetry: () => void
 }
 
+const SCHEMA_HEIGHT_KEY = 'doors_schema_height'
+
+function loadSchemaHeight(): number {
+  try {
+    const stored = localStorage.getItem(SCHEMA_HEIGHT_KEY)
+    if (stored) return parseInt(stored, 10)
+  } catch { /* ignore */ }
+  return 200
+}
+
 function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] {
   const elements: cytoscape.ElementDefinition[] = []
 
@@ -82,16 +92,17 @@ const SCHEMA_STYLE: any[] = [
     selector: 'edge',
     style: {
       width: 1.5,
-      'line-color': '#3d4474',
-      'target-arrow-color': '#3d4474',
+      'line-color': '#52587a',
+      'target-arrow-color': '#52587a',
       'target-arrow-shape': 'triangle',
       'curve-style': 'bezier',
       label: 'data(label)',
       'font-size': 8,
-      color: '#64748b',
-      'text-background-color': 'var(--color-bg-primary, #0f1117)',
-      'text-background-opacity': 1,
-      'text-background-padding': '2px',
+      color: '#94a3b8',
+      'text-background-opacity': 0,
+      'text-outline-color': '#1e2130',
+      'text-outline-width': 2,
+      'text-outline-opacity': 0.85,
     },
   },
 ]
@@ -99,7 +110,45 @@ const SCHEMA_STYLE: any[] = [
 export default function SchemaPanel({ schema, loading, error, onAddCondition, onRetry }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [selectedNode, setSelectedNode] = useState<SchemaNodeDef | null>(null)
+  const [graphHeight, setGraphHeight] = useState(loadSchemaHeight)
   const cyRef = useRef<cytoscape.Core | null>(null)
+  const isDraggingHeight = useRef(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const graphHeightRef = useRef(graphHeight)
+  graphHeightRef.current = graphHeight
+
+  const handleHeightDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingHeight.current = true
+    document.body.style.cursor = 'row-resize'
+    document.body.style.userSelect = 'none'
+  }, [])
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingHeight.current || !containerRef.current) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const raw = e.clientY - rect.top
+      const maxH = window.innerHeight * 0.4
+      const h = Math.min(Math.max(raw, 120), maxH)
+      graphHeightRef.current = h
+      setGraphHeight(h)
+    }
+    const handleMouseUp = () => {
+      if (isDraggingHeight.current) {
+        isDraggingHeight.current = false
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        localStorage.setItem(SCHEMA_HEIGHT_KEY, String(graphHeightRef.current))
+      }
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   const handleCyInit = useCallback((cy: cytoscape.Core) => {
     cyRef.current = cy
@@ -112,10 +161,10 @@ export default function SchemaPanel({ schema, loading, error, onAddCondition, on
     })
   }, [])
 
-  // Re-fit when expanded
+  // Re-fit when expanded or height changes
   useEffect(() => {
     if (expanded) setTimeout(() => cyRef.current?.fit(undefined, 24), 50)
-  }, [expanded])
+  }, [expanded, graphHeight])
 
   const nodeCount = schema?.nodes.length ?? 0
   const relCount = schema?.relationships.length ?? 0
@@ -153,21 +202,30 @@ export default function SchemaPanel({ schema, loading, error, onAddCondition, on
         <div className="animate-fade-in">
           {/* Mini schema graph */}
           {schema && schema.nodes.length > 0 && (
-            <div style={{ height: 180 }} className="relative">
-              <CytoscapeComponent
-                elements={buildSchemaElements(schema)}
-                style={{ width: '100%', height: '100%', background: 'transparent' }}
-                stylesheet={SCHEMA_STYLE}
-                layout={{
-                  name: 'dagre',
-                  rankDir: 'LR',
-                  nodeSep: 30,
-                  rankSep: 60,
-                  padding: 20,
-                } as unknown as cytoscape.LayoutOptions}
-                cy={handleCyInit}
-              />
-            </div>
+            <>
+              <div ref={containerRef} style={{ height: graphHeight }} className="relative">
+                <CytoscapeComponent
+                  elements={buildSchemaElements(schema)}
+                  style={{ width: '100%', height: '100%', background: 'transparent' }}
+                  stylesheet={SCHEMA_STYLE}
+                  layout={{
+                    name: 'dagre',
+                    rankDir: 'LR',
+                    nodeSep: 30,
+                    rankSep: 60,
+                    padding: 20,
+                  } as unknown as cytoscape.LayoutOptions}
+                  cy={handleCyInit}
+                />
+              </div>
+              {/* Height resize handle */}
+              <div
+                className="h-1.5 cursor-row-resize bg-transparent hover:bg-[var(--color-accent)]/20 transition-colors flex items-center justify-center group"
+                onMouseDown={handleHeightDragStart}
+              >
+                <div className="w-8 h-0.5 rounded-full bg-[var(--color-border)] group-hover:bg-[var(--color-accent)]/50 transition-colors" />
+              </div>
+            </>
           )}
 
           {/* Selected node property list */}
