@@ -77,8 +77,9 @@ export interface SchemaData {
 // ── Condition chips ───────────────────────────────────────────
 export interface Condition {
   id: string
-  nodeType: string        // e.g. "TechRequirement"
-  property?: string       // e.g. "priority" — absent when whole node type selected
+  nodeType: string
+  property?: string
+  value?: string          // user-entered filter value, only set when property is defined
 }
 
 // ── Node color palette ────────────────────────────────────────
