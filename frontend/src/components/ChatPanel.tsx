@@ -1,16 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { SendHorizonal, RotateCcw, BookOpen } from 'lucide-react'
-import type { Message, AppConfig, GraphData, SchemaData, Condition } from '../types'
+import type { Message, AppConfig, GraphData, Condition } from '../types'
 import { NODE_TYPE_LABEL } from '../types'
 import { sendChatMessage } from '../services/difyClient'
-import { fetchSchema } from '../services/schemaClient'
 import { parseAssistantResponse } from '../utils/responseParser'
 import MessageBubble from './MessageBubble'
-import SchemaPanel from './SchemaPanel'
 import ConditionBar from './ConditionBar'
 
 interface Props {
   config: AppConfig
+  conditions: Condition[]
+  onRemoveCondition: (id: string) => void
+  onClearConditions: () => void
+  onUpdateConditionValue: (id: string, value: string) => void
   onGraphData: (data: GraphData) => void
   onShowGraph: (data?: GraphData) => void
 }
@@ -22,46 +24,22 @@ const SUGGESTED = [
   '大纲包含哪些文本？每个文本规定了哪些需求？',
 ]
 
-export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
+export default function ChatPanel({
+  config,
+  conditions,
+  onRemoveCondition,
+  onClearConditions,
+  onUpdateConditionValue,
+  onGraphData,
+  onShowGraph,
+}: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [cypherModal, setCypherModal] = useState<string | null>(null)
-  const [conditions, setConditions] = useState<Condition[]>([])
-  const [schema, setSchema] = useState<SchemaData | null>(null)
-  const [schemaLoading, setSchemaLoading] = useState(false)
-  const [schemaError, setSchemaError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-
-  const loadSchema = useCallback(async () => {
-    if (!config.proxyUrl) return
-    setSchemaLoading(true)
-    setSchemaError(null)
-    try {
-      const data = await fetchSchema(config.proxyUrl, config.proxyApiKey)
-      setSchema(data)
-    } catch (e) {
-      setSchemaError(e instanceof Error ? e.message : '加载失败')
-    } finally {
-      setSchemaLoading(false)
-    }
-  }, [config.proxyUrl, config.proxyApiKey])
-
-  useEffect(() => { loadSchema() }, [loadSchema])
-
-  const handleAddCondition = useCallback((cond: Omit<Condition, 'id'>) => {
-    setConditions(prev => {
-      const duplicate = prev.some(c => c.nodeType === cond.nodeType && c.property === cond.property)
-      if (duplicate) return prev
-      return [...prev, { ...cond, id: crypto.randomUUID() }]
-    })
-  }, [])
-
-  const handleRemoveCondition = useCallback((id: string) => {
-    setConditions(prev => prev.filter(c => c.id !== id))
-  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -72,18 +50,19 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       const query = text.trim()
       if (!query || isLoading) return
 
-      // Prepend condition context if chips are selected
       let finalQuery = query
       if (conditions.length > 0) {
         const condStr = conditions
-          .map(c => c.property
-            ? `${NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType}(${c.property})`
-            : (NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType)
-          )
+          .map(c => {
+            const nodeLabel = NODE_TYPE_LABEL[c.nodeType] ?? c.nodeType
+            if (!c.property) return nodeLabel
+            if (c.value) return `${nodeLabel}(${c.property}="${c.value}")`
+            return `${nodeLabel}(${c.property})`
+          })
           .join('、')
         finalQuery = `【查询条件：${condStr}】${query}`
       }
-      setConditions([])
+      onClearConditions()
 
       const userMsg: Message = {
         id: crypto.randomUUID(),
@@ -159,7 +138,7 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
         },
       })
     },
-    [config, conversationId, isLoading, onGraphData],
+    [config, conversationId, isLoading, conditions, onClearConditions, onGraphData],
   )
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -178,21 +157,11 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-bg-primary)]">
-      {/* Schema panel */}
-      <SchemaPanel
-        schema={schema}
-        loading={schemaLoading}
-        error={schemaError}
-        onAddCondition={handleAddCondition}
-        onRetry={loadSchema}
-      />
-
       {/* Message list */}
       <div className="flex-1 overflow-y-auto py-2">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
             <div className="text-center animate-fade-in">
-              {/* Animated icon */}
               <div className="relative inline-block mb-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-700/20 border border-indigo-500/20 flex items-center justify-center animate-pulse-glow">
                   <BookOpen className="text-indigo-400" size={30} />
@@ -203,13 +172,12 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
               <p className="text-sm text-[var(--color-text-muted)]">用自然语言查询科技规划数据库，支持全链路追溯分析</p>
             </div>
 
-            {/* Suggested questions */}
             <div className="grid grid-cols-1 gap-2 w-full max-w-md">
               {SUGGESTED.map((s, i) => (
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
-                  className={`text-left text-sm px-4 py-3 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/40 hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 animate-fade-in-up group`}
+                  className="text-left text-sm px-4 py-3 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/40 hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 animate-fade-in-up group"
                   style={{ animationDelay: `${i * 0.08 + 0.1}s` }}
                 >
                   <span className="flex items-center gap-2.5">
@@ -222,7 +190,6 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
               ))}
             </div>
 
-            {/* Bottom hint */}
             <p className="text-[11px] text-[var(--color-text-dim)] text-center animate-fade-in animate-delay-500">
               以上为示例问题，你也可以自由输入任何追溯查询
             </p>
@@ -243,8 +210,9 @@ export default function ChatPanel({ config, onGraphData, onShowGraph }: Props) {
       {/* Condition chips */}
       <ConditionBar
         conditions={conditions}
-        onRemove={handleRemoveCondition}
-        onClear={() => setConditions([])}
+        onRemove={onRemoveCondition}
+        onClear={onClearConditions}
+        onUpdateValue={onUpdateConditionValue}
       />
 
       {/* Input area */}
