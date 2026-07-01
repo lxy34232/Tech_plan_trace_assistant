@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Header from './components/Header'
 import ChatPanel from './components/ChatPanel'
 import GraphPanel from './components/GraphPanel'
+import SchemaPanel from './components/SchemaPanel'
 import ConfigModal from './components/ConfigModal'
-import type { AppConfig, GraphData } from './types'
+import type { AppConfig, GraphData, SchemaData, Condition } from './types'
 import { DEFAULT_CONFIG } from './types'
+import { fetchSchema } from './services/schemaClient'
 
 const CONFIG_KEY = 'doors_trace_config'
 const PANEL_WIDTH_KEY = 'doors_trace_panel_width'
@@ -42,6 +44,48 @@ export default function App() {
   const [panelWidth, setPanelWidth] = useState(loadPanelWidth)
   const isResizing = useRef(false)
 
+  // Schema state (lifted from ChatPanel)
+  const [schema, setSchema] = useState<SchemaData | null>(null)
+  const [schemaLoading, setSchemaLoading] = useState(false)
+  const [schemaError, setSchemaError] = useState<string | null>(null)
+
+  // Conditions state (lifted from ChatPanel)
+  const [conditions, setConditions] = useState<Condition[]>([])
+
+  const loadSchema = useCallback(async () => {
+    if (!config.proxyUrl) return
+    setSchemaLoading(true)
+    setSchemaError(null)
+    try {
+      const data = await fetchSchema(config.proxyUrl, config.proxyApiKey)
+      setSchema(data)
+    } catch (e) {
+      setSchemaError(e instanceof Error ? e.message : '加载失败')
+    } finally {
+      setSchemaLoading(false)
+    }
+  }, [config.proxyUrl, config.proxyApiKey])
+
+  useEffect(() => { loadSchema() }, [loadSchema])
+
+  const handleAddCondition = useCallback((cond: Omit<Condition, 'id'>) => {
+    setConditions(prev => {
+      const duplicate = prev.some(c => c.nodeType === cond.nodeType && c.property === cond.property)
+      if (duplicate) return prev
+      return [...prev, { ...cond, id: crypto.randomUUID() }]
+    })
+  }, [])
+
+  const handleRemoveCondition = useCallback((id: string) => {
+    setConditions(prev => prev.filter(c => c.id !== id))
+  }, [])
+
+  const handleClearConditions = useCallback(() => setConditions([]), [])
+
+  const handleUpdateConditionValue = useCallback((id: string, value: string) => {
+    setConditions(prev => prev.map(c => c.id === id ? { ...c, value } : c))
+  }, [])
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
     check()
@@ -68,7 +112,6 @@ export default function App() {
     if (isMobile) setActiveTab('graph')
   }, [isMobile])
 
-  // Resize handlers
   const handleResizeStart = useCallback(() => {
     isResizing.current = true
     document.body.style.cursor = 'col-resize'
@@ -99,6 +142,31 @@ export default function App() {
     }
   }, [panelWidth])
 
+  const chatPanel = (
+    <ChatPanel
+      config={config}
+      conditions={conditions}
+      onRemoveCondition={handleRemoveCondition}
+      onClearConditions={handleClearConditions}
+      onUpdateConditionValue={handleUpdateConditionValue}
+      onGraphData={handleGraphData}
+      onShowGraph={handleShowGraph}
+    />
+  )
+
+  const rightColumn = (
+    <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <SchemaPanel
+        schema={schema}
+        loading={schemaLoading}
+        error={schemaError}
+        onAddCondition={handleAddCondition}
+        onRetry={loadSchema}
+      />
+      <GraphPanel graphData={graphData} />
+    </div>
+  )
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Header
@@ -111,28 +179,21 @@ export default function App() {
       <main className="flex flex-1 min-h-0 overflow-hidden">
         {isMobile ? (
           <div className="flex-1 min-h-0">
-            {activeTab === 'chat' ? (
-              <ChatPanel config={config} onGraphData={handleGraphData} onShowGraph={handleShowGraph} />
-            ) : (
-              <GraphPanel graphData={graphData} />
-            )}
+            {activeTab === 'chat' ? chatPanel : rightColumn}
           </div>
         ) : (
           <>
             <div className="flex flex-col min-h-0 border-r border-[var(--color-border)]" style={{ width: panelWidth, minWidth: 320, maxWidth: '55%' }}>
-              <ChatPanel config={config} onGraphData={handleGraphData} onShowGraph={handleShowGraph} />
+              {chatPanel}
             </div>
-            {/* Resize handle */}
             <div
-              className="w-1.5 cursor-col-resize bg-transparent hover:bg-indigo-500/40 active:bg-indigo-500/60 transition-colors duration-150 shrink-0 relative group"
+              className="w-1.5 cursor-col-resize bg-transparent hover:bg-[var(--color-accent)]/40 active:bg-[var(--color-accent)]/60 transition-colors duration-150 shrink-0 relative group"
               onMouseDown={handleResizeStart}
             >
               <div className="absolute inset-y-0 -left-1 -right-1" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-[var(--color-border-light)] group-hover:bg-indigo-400 group-active:bg-indigo-300 transition-colors duration-150" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-accent)] group-active:bg-[var(--color-accent-hover)] transition-colors duration-150" />
             </div>
-            <div className="flex-1 flex flex-col min-h-0 min-w-0">
-              <GraphPanel graphData={graphData} />
-            </div>
+            {rightColumn}
           </>
         )}
       </main>
