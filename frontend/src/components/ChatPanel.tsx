@@ -111,18 +111,21 @@ export default function ChatPanel({
             ),
           )
         },
-        onDone: (convId) => {
+        onDone: (convId, _msgId, toolGraphData) => {
           if (convId) setConversationId(convId)
-          const { displayContent, graphData, cypher, queryResult } = parseAssistantResponse(accumulated)
+          const { displayContent, graphData: llmGraphData, cypher, queryResult } = parseAssistantResponse(accumulated)
+          // Prefer tool-sourced graph data (directly from Neo4j, always complete)
+          // over the LLM-formatted graph_data which may omit nodes
+          const finalGraphData = toolGraphData ?? llmGraphData
           setMessages(prev =>
             prev.map(m =>
               m.id === assistantId
-                ? { ...m, loading: false, content: accumulated, displayContent, graphData, cypher, queryResult, thinking: thinkingAccumulated || undefined }
+                ? { ...m, loading: false, content: accumulated, displayContent, graphData: finalGraphData, cypher, queryResult, thinking: thinkingAccumulated || undefined }
                 : m,
             ),
           )
-          if (graphData && graphData.nodes.length > 0) {
-            onGraphData(graphData)
+          if (finalGraphData && finalGraphData.nodes.length > 0) {
+            onGraphData(finalGraphData)
           }
           setIsLoading(false)
         },

@@ -1,9 +1,10 @@
-import type { AppConfig } from '../types'
+import type { AppConfig, GraphData } from '../types'
 
 export interface StreamCallbacks {
   onToken: (token: string) => void
   onThinking: (thinking: string) => void
-  onDone: (conversationId: string, messageId: string) => void
+  /** toolGraphData: merged nodes/edges collected from all agent tool observations */
+  onDone: (conversationId: string, messageId: string, toolGraphData?: GraphData) => void
   onError: (error: string) => void
 }
 
@@ -53,6 +54,10 @@ export async function sendChatMessage(
   let convId = conversationId ?? ''
   let msgId = ''
 
+  // Accumulate graph nodes/edges from all tool observations (keyed by id to deduplicate)
+  const toolNodes = new Map<string, GraphData['nodes'][number]>()
+  const toolEdges = new Map<string, GraphData['edges'][number]>()
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
@@ -75,22 +80,23 @@ export async function sendChatMessage(
           if (event.message_id) msgId = event.message_id
         } else if (event.event === 'agent_thought') {
           // Capture agent thinking process (reasoning + tool calls + observations)
-          let thinkingParts: string[] = []
-          if (event.thought) {
-            thinkingParts.push(`💭 思考：${event.thought}`)
-          }
-          if (event.tool) {
-            thinkingParts.push(`🔧 调用工具：${event.tool}`)
-          }
-          if (event.tool_input) {
-            thinkingParts.push(`📥 工具输入：${event.tool_input}`)
-          }
+          const thinkingParts: string[] = []
+          if (event.thought) thinkingParts.push(`💭 思考：${event.thought}`)
+          if (event.tool) thinkingParts.push(`🔧 调用工具：${event.tool}`)
+          if (event.tool_input) thinkingParts.push(`📥 工具输入：${event.tool_input}`)
           if (event.observation) {
             thinkingParts.push(`📤 工具输出：${event.observation}`)
+            // Extract graph data from the actual tool response — the LLM may not copy
+            // all nodes faithfully into its graph_data JSON block, so we collect here.
+            try {
+              const obs = JSON.parse(event.observation)
+              const rawNodes: GraphData['nodes'] = obs.graph?.nodes ?? obs.graph_data?.nodes ?? []
+              const rawEdges: GraphData['edges'] = obs.graph?.edges ?? obs.graph_data?.edges ?? []
+              for (const n of rawNodes) toolNodes.set(n.id, n)
+              for (const e of rawEdges) toolEdges.set(e.id, e)
+            } catch { /* observation is not JSON or contains no graph data */ }
           }
-          if (thinkingParts.length > 0) {
-            callbacks.onThinking(thinkingParts.join('\n'))
-          }
+          if (thinkingParts.length > 0) callbacks.onThinking(thinkingParts.join('\n'))
         } else if (event.event === 'message_end' || event.event === 'agent_message_end') {
           if (event.conversation_id) convId = event.conversation_id
           if (event.message_id) msgId = event.message_id
@@ -104,5 +110,9 @@ export async function sendChatMessage(
     }
   }
 
-  callbacks.onDone(convId, msgId)
+  const toolGraphData: GraphData | undefined = toolNodes.size > 0
+    ? { nodes: Array.from(toolNodes.values()), edges: Array.from(toolEdges.values()) }
+    : undefined
+
+  callbacks.onDone(convId, msgId, toolGraphData)
 }
