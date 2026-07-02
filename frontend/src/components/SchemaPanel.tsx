@@ -62,9 +62,9 @@ function buildSchemaStyle(isDark: boolean) {
         'text-halign': 'center',
         'text-wrap': 'wrap',
         'text-max-width': '80px',
-        width: 'label',
-        height: 'label',
-        padding: 10,
+        width: 'data(nodeWidth)',
+        height: 'data(nodeHeight)',
+        'border-opacity': 0.67,
         'text-outline-color': 'rgba(0,0,0,0.4)',
         'text-outline-width': 1,
         'text-outline-opacity': 0.5,
@@ -107,8 +107,12 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
   const elements: cytoscape.ElementDefinition[] = []
   for (const node of schema.nodes) {
     const color = getNodeColor(node.label)
+    const nodeLabel = NODE_TYPE_LABEL[node.label] ?? node.label
+    // ~10px per char at font-size 10, 10px padding each side baked in
+    const nodeWidth = Math.max(50, nodeLabel.length * 10 + 20)
+    const nodeHeight = 30
     elements.push({
-      data: { id: node.label, label: NODE_TYPE_LABEL[node.label] ?? node.label, color, borderColor: color + 'aa', raw: node },
+      data: { id: node.label, label: nodeLabel, color, borderColor: color, nodeWidth, nodeHeight, raw: node },
     })
   }
   const seen = new Set<string>()

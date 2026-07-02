@@ -18,7 +18,6 @@ interface Props {
 function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
   const scale = nodeSize / 42
   const fontSize = Math.round(Math.max(9, Math.min(14, scale * 11)))
-  const padding = Math.round(Math.max(8, Math.min(18, scale * 12)))
   const maxWidth = Math.round(scale * 110)
 
   const edgeColor = isDark ? '#6b7a99' : '#8094b0'
@@ -42,9 +41,9 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
         'text-halign': 'center',
         'text-wrap': 'wrap',
         'text-max-width': `${maxWidth}px`,
-        width: 'label',
-        height: 'label',
-        padding,
+        width: 'data(nodeWidth)',
+        height: 'data(nodeHeight)',
+        'border-opacity': 0.67,
         'text-outline-color': 'rgba(0,0,0,0.35)',
         'text-outline-width': 1,
         'text-outline-opacity': 0.5,
@@ -117,13 +116,18 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
 
   for (const node of graphData.nodes) {
     const color = NODE_TYPE_COLOR[node.type] ?? '#64748b'
-    const border = color + 'aa'
+    const label = node.label.length > 18 ? node.label.slice(0, 18) + '…' : node.label
+    // Pre-compute dimensions: ~10px per Chinese char, 12px padding each side baked in
+    const nodeWidth = Math.max(64, label.length * 10 + 24)
+    const nodeHeight = label.length > 11 ? 52 : 38  // two-line vs single-line + padding
     elements.push({
       data: {
         id: node.id,
-        label: node.label.length > 18 ? node.label.slice(0, 18) + '…' : node.label,
+        label,
         color,
-        borderColor: border,
+        borderColor: color,  // plain 6-digit hex; border-opacity set in style
+        nodeWidth,
+        nodeHeight,
         type: node.type,
         typeLabel: NODE_TYPE_LABEL[node.type] ?? node.type,
         raw: node,
