@@ -3,8 +3,9 @@ import Header from './components/Header'
 import ChatPanel from './components/ChatPanel'
 import GraphPanel from './components/GraphPanel'
 import SchemaPanel from './components/SchemaPanel'
+import NodeDetail from './components/NodeDetail'
 import ConfigModal from './components/ConfigModal'
-import type { AppConfig, GraphData, SchemaData, Condition } from './types'
+import type { AppConfig, GraphData, GraphNode, SchemaData, Condition } from './types'
 import { DEFAULT_CONFIG } from './types'
 import { fetchSchema } from './services/schemaClient'
 
@@ -39,6 +40,7 @@ export default function App() {
   const [config, setConfig] = useState<AppConfig>(loadConfig)
   const [showConfig, setShowConfig] = useState(false)
   const [graphData, setGraphData] = useState<GraphData | null>(null)
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [activeTab, setActiveTab] = useState<'chat' | 'graph'>('chat')
   const [isMobile, setIsMobile] = useState(false)
   const [panelWidth, setPanelWidth] = useState(loadPanelWidth)
@@ -107,11 +109,15 @@ export default function App() {
 
   const handleGraphData = useCallback((data: GraphData) => {
     setGraphData(data)
+    setSelectedNode(null)
     if (isMobile) setActiveTab('graph')
   }, [isMobile])
 
   const handleShowGraph = useCallback((data?: GraphData) => {
-    if (data) setGraphData(data)
+    if (data) {
+      setGraphData(data)
+      setSelectedNode(null)
+    }
     if (isMobile) setActiveTab('graph')
   }, [isMobile])
 
@@ -154,8 +160,15 @@ export default function App() {
   )
 
   const rightColumn = (
-    <div className="flex-1 flex min-h-0 min-w-0">
-      <GraphPanel graphData={graphData} />
+    <div className="flex-1 flex min-h-0 min-w-0 overflow-hidden relative">
+      <GraphPanel
+        graphData={graphData}
+        selectedNode={selectedNode}
+        onSelectNode={setSelectedNode}
+      />
+      {selectedNode && !isMobile && (
+        <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />
+      )}
       <SchemaPanel
         schema={schema}
         loading={schemaLoading}
@@ -164,6 +177,11 @@ export default function App() {
         onRetry={loadSchema}
         defaultExpanded={!isMobile}
       />
+      {selectedNode && isMobile && (
+        <div className="absolute inset-y-0 right-0 z-30 max-w-full">
+          <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />
+        </div>
+      )}
     </div>
   )
 

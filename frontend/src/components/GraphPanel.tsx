@@ -4,7 +4,6 @@ import cytoscape from 'cytoscape'
 import dagre from 'cytoscape-dagre'
 import type { GraphData, GraphNode, LayoutType } from '../types'
 import { NODE_TYPE_COLOR, NODE_TYPE_LABEL, RELATION_TYPE_LABEL, LAYOUT_OPTIONS, getNodeColor } from '../types'
-import NodeDetail from './NodeDetail'
 import { useTheme } from '../contexts/ThemeContext'
 import { ZoomIn, ZoomOut, Maximize2, Share2, Layout, Sliders, Download } from 'lucide-react'
 
@@ -12,6 +11,8 @@ cytoscape.use(dagre)
 
 interface Props {
   graphData: GraphData | null
+  selectedNode: GraphNode | null
+  onSelectNode: (node: GraphNode | null) => void
 }
 
 function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
@@ -71,10 +72,7 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
         opacity: 1,
       },
     },
-    {
-      selector: '.dimmed',
-      style: { opacity: 0.25 },
-    },
+    { selector: '.dimmed', style: { opacity: 0.25 } },
     {
       selector: 'edge',
       style: {
@@ -113,16 +111,14 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
   for (const node of graphData.nodes) {
     const color = NODE_TYPE_COLOR[node.type] ?? getNodeColor(node.type)
     const label = node.label.length > 18 ? `${node.label.slice(0, 18)}...` : node.label
-    const nodeWidth = Math.max(64, label.length * 10 + 24)
-    const nodeHeight = label.length > 11 ? 52 : 38
     elements.push({
       data: {
         id: node.id,
         label,
         color,
         borderColor: color,
-        nodeWidth,
-        nodeHeight,
+        nodeWidth: Math.max(64, label.length * 10 + 24),
+        nodeHeight: label.length > 11 ? 52 : 38,
         type: node.type,
         typeLabel: NODE_TYPE_LABEL[node.type] ?? node.type,
         raw: node,
@@ -147,31 +143,25 @@ function buildElements(graphData: GraphData): cytoscape.ElementDefinition[] {
 }
 
 function getLayoutOptions(layout: LayoutType, nodeSpacing: number = 1): cytoscape.LayoutOptions {
-  const baseSep = 90
-  const baseRankSep = 120
-  const baseSpacing = 20
-
   switch (layout) {
     case 'circle':
-      return { name: 'circle', padding: 50, avoidOverlap: true, spacing: baseSpacing * nodeSpacing } as cytoscape.LayoutOptions
+      return { name: 'circle', padding: 50, avoidOverlap: true, spacing: 20 * nodeSpacing } as cytoscape.LayoutOptions
     case 'grid':
       return { name: 'grid', padding: 50, avoidOverlap: true, condense: false } as cytoscape.LayoutOptions
     case 'dagre':
     default:
-      return { name: 'dagre', rankDir: 'TB', nodeSep: baseSep * nodeSpacing, rankSep: baseRankSep * nodeSpacing, padding: 50 } as unknown as cytoscape.LayoutOptions
+      return { name: 'dagre', rankDir: 'TB', nodeSep: 90 * nodeSpacing, rankSep: 120 * nodeSpacing, padding: 50 } as unknown as cytoscape.LayoutOptions
   }
 }
 
-export default function GraphPanel({ graphData }: Props) {
+export default function GraphPanel({ graphData, selectedNode, onSelectNode }: Props) {
   const cyRef = useRef<cytoscape.Core | null>(null)
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [layout, setLayout] = useState<LayoutType>('dagre')
   const [showLayoutMenu, setShowLayoutMenu] = useState(false)
   const [cyInitialized, setCyInitialized] = useState(false)
   const [nodeSize, setNodeSize] = useState(42)
   const [nodeSpacing, setNodeSpacing] = useState(1)
   const [showSettings, setShowSettings] = useState(false)
-
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const cyStyle = useMemo(() => buildCyStyle(isDark, nodeSize), [isDark, nodeSize])
@@ -179,16 +169,12 @@ export default function GraphPanel({ graphData }: Props) {
   const elements = useMemo(() => (graphData ? buildElements(graphData) : []), [graphData])
   const legendEntries = useMemo(() => {
     if (!graphData) return []
-    const types = [...new Set(graphData.nodes.map(n => n.type))]
-    return types.map(type => ({
+    return [...new Set(graphData.nodes.map(n => n.type))].map(type => ({
       type,
       color: getNodeColor(type),
       label: NODE_TYPE_LABEL[type] ?? type,
     }))
   }, [graphData])
-
-  const nodeCount = graphData?.nodes.length ?? 0
-  const edgeCount = graphData?.edges.length ?? 0
 
   useEffect(() => {
     const cy = cyRef.current
@@ -199,24 +185,24 @@ export default function GraphPanel({ graphData }: Props) {
   useEffect(() => {
     const cy = cyRef.current
     if (!cy || !graphData || graphData.nodes.length === 0 || !cyInitialized) return
-
     const applyLayout = () => {
-      if (cy.nodes().length > 0) {
-        cy.layout(getLayoutOptions(layout, nodeSpacing)).run()
-      } else {
-        setTimeout(applyLayout, 50)
-      }
+      if (cy.nodes().length > 0) cy.layout(getLayoutOptions(layout, nodeSpacing)).run()
+      else setTimeout(applyLayout, 50)
     }
-
     applyLayout()
   }, [layout, graphData, cyInitialized, nodeSpacing])
 
+  useEffect(() => {
+    const cy = cyRef.current
+    if (!cy || selectedNode) return
+    cy.elements().removeClass('highlighted dimmed')
+  }, [selectedNode])
+
   const handleCyInit = useCallback((cy: cytoscape.Core) => {
     cyRef.current = cy
-
     cy.on('tap', 'node', (evt) => {
       const node = evt.target
-      setSelectedNode(node.data('raw') as GraphNode)
+      onSelectNode(node.data('raw') as GraphNode)
       const hood = node.closedNeighborhood()
       cy.elements().removeClass('highlighted dimmed')
       hood.addClass('highlighted')
@@ -224,13 +210,12 @@ export default function GraphPanel({ graphData }: Props) {
     })
     cy.on('tap', (evt) => {
       if (evt.target === cy) {
-        setSelectedNode(null)
+        onSelectNode(null)
         cy.elements().removeClass('highlighted dimmed')
       }
     })
-
     setCyInitialized(true)
-  }, [])
+  }, [onSelectNode])
 
   const handleFit = () => cyRef.current?.fit(undefined, 40)
   const handleZoomIn = () => {
@@ -244,16 +229,15 @@ export default function GraphPanel({ graphData }: Props) {
   const handleExport = () => {
     const cy = cyRef.current
     if (!cy) return
-    const png = cy.png({ full: true, scale: 2, bg: canvasBg })
     const a = document.createElement('a')
-    a.href = png
+    a.href = cy.png({ full: true, scale: 2, bg: canvasBg })
     a.download = `doors-trace-graph-${new Date().toISOString().slice(0, 10)}.png`
     a.click()
   }
 
   if (!graphData || graphData.nodes.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-[var(--color-bg-primary)] text-[var(--color-text-dim)] animate-fade-in">
+      <div className="flex-1 min-w-0 flex flex-col items-center justify-center gap-4 bg-[var(--color-bg-primary)] text-[var(--color-text-dim)] animate-fade-in">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-500/10 to-slate-700/10 border border-[var(--color-border)] flex items-center justify-center">
           <Share2 size={32} className="text-[var(--color-text-dim)]" />
         </div>
@@ -266,121 +250,102 @@ export default function GraphPanel({ graphData }: Props) {
   }
 
   return (
-    <div className="flex flex-1 min-h-0 bg-[var(--color-bg-primary)] animate-fade-in">
-      <div className="flex-1 relative min-w-0">
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-          <button onClick={handleZoomIn} title="放大" aria-label="放大图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
-            <ZoomIn size={15} />
-          </button>
-          <button onClick={handleZoomOut} title="缩小" aria-label="缩小图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
-            <ZoomOut size={15} />
-          </button>
-          <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
-            <Maximize2 size={15} />
-          </button>
-          <button onClick={handleExport} title="导出图片" aria-label="导出图谱图片" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
-            <Download size={15} />
-          </button>
+    <div className="flex-1 min-w-0 min-h-0 bg-[var(--color-bg-primary)] animate-fade-in relative">
+      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+        <button onClick={handleZoomIn} title="放大" aria-label="放大图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <ZoomIn size={15} />
+        </button>
+        <button onClick={handleZoomOut} title="缩小" aria-label="缩小图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <ZoomOut size={15} />
+        </button>
+        <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <Maximize2 size={15} />
+        </button>
+        <button onClick={handleExport} title="导出图片" aria-label="导出图谱图片" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <Download size={15} />
+        </button>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowLayoutMenu(!showLayoutMenu)}
-              title="切换布局"
-              aria-label="切换布局"
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm"
-            >
-              <Layout size={14} />
-            </button>
-            {showLayoutMenu && (
-              <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowLayoutMenu(false)} />
-                <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-1.5 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl min-w-[140px] animate-scale-in origin-top-left">
-                  {LAYOUT_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => { setLayout(opt.value); setShowLayoutMenu(false) }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-2.5 transition-all duration-150 ${
-                        layout === opt.value
-                          ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
-                          : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]'
-                      }`}
-                    >
-                      <span className="text-sm w-5 text-center">{opt.icon}</span>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+        <div className="relative">
+          <button onClick={() => setShowLayoutMenu(!showLayoutMenu)} title="切换布局" aria-label="切换布局" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+            <Layout size={14} />
+          </button>
+          {showLayoutMenu && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setShowLayoutMenu(false)} />
+              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-1.5 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl min-w-[140px] animate-scale-in origin-top-left">
+                {LAYOUT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setLayout(opt.value); setShowLayoutMenu(false) }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-2.5 transition-all duration-150 ${
+                      layout === opt.value
+                        ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
+                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]'
+                    }`}
+                  >
+                    <span className="text-sm w-5 text-center">{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
-          <div className="relative">
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              title="图形设置"
-              aria-label="图形设置"
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm"
-            >
-              <Sliders size={14} />
-            </button>
-            {showSettings && (
-              <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowSettings(false)} />
-                <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-3 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl w-56 animate-scale-in origin-top-left space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点大小</label>
-                    <div className="flex items-center gap-2">
-                      <input type="range" min="20" max="100" value={nodeSize} onChange={(e) => setNodeSize(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
-                      <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSize}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点间距</label>
-                    <div className="flex items-center gap-2">
-                      <input type="range" min="0.5" max="3" step="0.1" value={nodeSpacing} onChange={(e) => setNodeSpacing(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
-                      <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSpacing.toFixed(1)}</span>
-                    </div>
+        <div className="relative">
+          <button onClick={() => setShowSettings(!showSettings)} title="图形设置" aria-label="图形设置" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+            <Sliders size={14} />
+          </button>
+          {showSettings && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setShowSettings(false)} />
+              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-3 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl w-56 animate-scale-in origin-top-left space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点大小</label>
+                  <div className="flex items-center gap-2">
+                    <input type="range" min="20" max="100" value={nodeSize} onChange={(e) => setNodeSize(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSize}</span>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点间距</label>
+                  <div className="flex items-center gap-2">
+                    <input type="range" min="0.5" max="3" step="0.1" value={nodeSpacing} onChange={(e) => setNodeSpacing(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
+                    <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSpacing.toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-
-        <div className="absolute top-3 right-3 z-10 flex gap-2 text-[10px]">
-          <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
-            <span className="text-indigo-400 font-semibold">{nodeCount}</span> 节点
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
-            <span className="text-indigo-400 font-semibold">{edgeCount}</span> 关系
-          </span>
-        </div>
-
-        <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[var(--color-bg-card)]/95 border border-[var(--color-border)] rounded-xl p-3 backdrop-blur-md shadow-lg shadow-[var(--color-shadow)]">
-          <span className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-wider mb-0.5">图例</span>
-          {legendEntries.map(({ type, color, label }) => (
-            <div key={type} className="flex items-center gap-2 group cursor-default">
-              <div
-                className="w-3 h-3 rounded-full ring-2 ring-offset-1 ring-offset-[var(--color-bg-card)] transition-transform duration-200 group-hover:scale-125"
-                style={{ background: color, boxShadow: `0 0 0 1px ${color}40` }}
-              />
-              <span className="text-[10px] text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)] transition-colors">{label}</span>
-            </div>
-          ))}
-        </div>
-
-        <CytoscapeComponent
-          elements={elements}
-          style={{ width: '100%', height: '100%', background: canvasBg }}
-          stylesheet={cyStyle as unknown as cytoscape.StylesheetCSS[]}
-          layout={{ name: 'preset' } as cytoscape.LayoutOptions}
-          cy={handleCyInit}
-        />
       </div>
 
-      {selectedNode && (
-        <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />
-      )}
+      <div className="absolute top-3 right-3 z-10 flex gap-2 text-[10px]">
+        <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
+          <span className="text-indigo-400 font-semibold">{graphData.nodes.length}</span> 节点
+        </span>
+        <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
+          <span className="text-indigo-400 font-semibold">{graphData.edges.length}</span> 关系
+        </span>
+      </div>
+
+      <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[var(--color-bg-card)]/95 border border-[var(--color-border)] rounded-xl p-3 backdrop-blur-md shadow-lg shadow-[var(--color-shadow)]">
+        <span className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-wider mb-0.5">图例</span>
+        {legendEntries.map(({ type, color, label }) => (
+          <div key={type} className="flex items-center gap-2 group cursor-default">
+            <div className="w-3 h-3 rounded-full ring-2 ring-offset-1 ring-offset-[var(--color-bg-card)] transition-transform duration-200 group-hover:scale-125" style={{ background: color, boxShadow: `0 0 0 1px ${color}40` }} />
+            <span className="text-[10px] text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)] transition-colors">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      <CytoscapeComponent
+        elements={elements}
+        style={{ width: '100%', height: '100%', background: canvasBg }}
+        stylesheet={cyStyle as unknown as cytoscape.StylesheetCSS[]}
+        layout={{ name: 'preset' } as cytoscape.LayoutOptions}
+        cy={handleCyInit}
+      />
     </div>
   )
 }

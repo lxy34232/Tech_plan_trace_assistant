@@ -13,12 +13,13 @@ import { useTheme } from '../contexts/ThemeContext'
 cytoscape.use(dagre)
 
 const SCHEMA_WIDTH_KEY = 'doors_schema_width'
-const DEFAULT_WIDTH = 246
+const DEFAULT_WIDTH = 260
+const COLLAPSED_WIDTH = 40
 
 function loadSchemaWidth(): number {
   try {
     const v = parseInt(localStorage.getItem(SCHEMA_WIDTH_KEY) ?? '', 10)
-    if (Number.isFinite(v) && v > 0) return v
+    if (Number.isFinite(v) && v >= 180) return v
   } catch { /* ignore */ }
   return DEFAULT_WIDTH
 }
@@ -107,9 +108,16 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
   for (const node of schema.nodes) {
     const color = getNodeColor(node.label)
     const nodeLabel = NODE_TYPE_LABEL[node.label] ?? node.label
-    const nodeWidth = Math.max(50, nodeLabel.length * 10 + 20)
     elements.push({
-      data: { id: node.label, label: nodeLabel, color, borderColor: color, nodeWidth, nodeHeight: 30, raw: node },
+      data: {
+        id: node.label,
+        label: nodeLabel,
+        color,
+        borderColor: color,
+        nodeWidth: Math.max(50, nodeLabel.length * 10 + 20),
+        nodeHeight: 30,
+        raw: node,
+      },
     })
   }
   const seen = new Set<string>()
@@ -118,7 +126,12 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
     if (seen.has(key) || !rel.from || !rel.to) continue
     seen.add(key)
     elements.push({
-      data: { id: key, source: rel.from, target: rel.to, label: RELATION_TYPE_LABEL[rel.type] ?? rel.type.replace(/_/g, ' ') },
+      data: {
+        id: key,
+        source: rel.from,
+        target: rel.to,
+        label: RELATION_TYPE_LABEL[rel.type] ?? rel.type.replace(/_/g, ' '),
+      },
     })
   }
   return elements
@@ -163,8 +176,8 @@ export default function SchemaPanel({
     const onMove = (e: MouseEvent) => {
       if (!isDraggingWidth.current) return
       const newW = Math.min(
-        Math.max(window.innerWidth - e.clientX, 180),
-        Math.min(480, window.innerWidth * 0.45),
+        Math.max(window.innerWidth - e.clientX, 200),
+        Math.min(520, window.innerWidth * 0.45),
       )
       widthRef.current = newW
       setWidth(newW)
@@ -211,26 +224,31 @@ export default function SchemaPanel({
 
   if (!expanded) {
     return (
-      <div className="w-8 shrink-0 flex flex-col items-center border-l border-[var(--color-border)] bg-[var(--color-bg-secondary)]/40">
+      <aside
+        className="h-full shrink-0 flex flex-col items-center border-l border-[var(--color-border)] bg-[var(--color-bg-secondary)]/60"
+        style={{ width: COLLAPSED_WIDTH, minWidth: COLLAPSED_WIDTH }}
+      >
         <button
           onClick={() => setExpanded(true)}
-          className="w-full flex items-center justify-center py-2.5 hover:bg-[var(--color-bg-hover)]/50 transition-colors border-b border-[var(--color-border)]"
+          className="w-full h-10 flex items-center justify-center hover:bg-[var(--color-bg-hover)]/70 transition-colors border-b border-[var(--color-border)]"
           title="展开数据库结构"
+          aria-label="展开数据库结构"
         >
-          <ChevronLeft size={13} className="text-[var(--color-text-dim)]" />
+          <ChevronLeft size={15} className="text-[var(--color-text-secondary)]" />
         </button>
         <div className="mt-4 text-[10px] text-[var(--color-text-dim)] select-none tracking-widest" style={{ writingMode: 'vertical-rl' }}>
           数据库结构
         </div>
-      </div>
+      </aside>
     )
   }
 
   return (
-    <div className="shrink-0 flex h-full" style={{ width }}>
+    <aside className="shrink-0 flex h-full" style={{ width, minWidth: width }}>
       <div
-        className="w-1.5 cursor-col-resize bg-transparent hover:bg-[var(--color-accent)]/30 active:bg-[var(--color-accent)]/50 transition-colors duration-150 shrink-0 relative group"
+        className="w-2 cursor-col-resize bg-transparent hover:bg-[var(--color-accent)]/30 active:bg-[var(--color-accent)]/50 transition-colors duration-150 shrink-0 relative group"
         onMouseDown={handleWidthDragStart}
+        title="拖拽调整数据库结构栏宽度"
       >
         <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-8 w-0.5 rounded-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-accent)] transition-colors" />
       </div>
@@ -244,14 +262,15 @@ export default function SchemaPanel({
           )}
           {loading && <RefreshCw size={10} className="text-[var(--color-text-dim)] animate-spin shrink-0" />}
           {error && !loading && (
-            <button onClick={onRetry} className="text-red-400 hover:text-red-300 transition-colors shrink-0" title="重试">
+            <button onClick={onRetry} className="text-red-400 hover:text-red-300 transition-colors shrink-0" title="重试" aria-label="重试">
               <RefreshCw size={10} />
             </button>
           )}
           <button
             onClick={() => setExpanded(false)}
             className="shrink-0 text-[var(--color-text-dim)] hover:text-[var(--color-text-secondary)] transition-colors"
-            title="折叠"
+            title="折叠数据库结构"
+            aria-label="折叠数据库结构"
           >
             <ChevronRight size={13} />
           </button>
@@ -335,6 +354,6 @@ export default function SchemaPanel({
           </div>
         )}
       </div>
-    </div>
+    </aside>
   )
 }

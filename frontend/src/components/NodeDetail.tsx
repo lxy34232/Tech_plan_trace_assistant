@@ -98,7 +98,7 @@ export default function NodeDetail({ node, onClose }: Props) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[var(--color-bg-card)] border-l border-[var(--color-border)] w-80 shrink-0 overflow-hidden animate-slide-in-right shadow-xl shadow-[var(--color-shadow)]">
+    <aside className="h-full flex flex-col bg-[var(--color-bg-card)] border-l border-[var(--color-border)] w-80 min-w-80 shrink-0 overflow-hidden animate-slide-in-right shadow-xl shadow-[var(--color-shadow)]">
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]/50">
         <div className="relative">
           <div className="w-3.5 h-3.5 rounded-full" style={{ background: color }} />
@@ -112,6 +112,7 @@ export default function NodeDetail({ node, onClose }: Props) {
           onClick={onClose}
           className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
           aria-label="关闭详情"
+          title="关闭详情"
         >
           <X size={15} />
         </button>
@@ -136,7 +137,7 @@ export default function NodeDetail({ node, onClose }: Props) {
                   <div key={key} className="text-sm group">
                     <div className="text-[11px] text-[var(--color-text-muted)] mb-1 font-medium">{label}</div>
                     <div className="flex gap-2 items-stretch bg-[var(--color-bg-input)] rounded-lg border border-[var(--color-border)]/50 group-hover:border-[var(--color-border)] transition-colors duration-200 overflow-hidden">
-                      <div className="flex-1 px-3 py-2.5">
+                      <div className="flex-1 px-3 py-2.5 min-w-0">
                         {getValueBadge(key, value)}
                       </div>
                       <button
@@ -172,6 +173,6 @@ export default function NodeDetail({ node, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   )
 }
