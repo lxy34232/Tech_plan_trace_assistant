@@ -1,24 +1,13 @@
 import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { Message } from '../types'
-import { Bot, User, Code2, GitBranch, Brain, Database } from 'lucide-react'
+import { Bot, User, Code2, GitBranch, Brain, Database, Copy } from 'lucide-react'
 
 interface Props {
   message: Message
   onShowCypher?: (cypher: string) => void
   onShowGraph?: () => void
-}
-
-function renderMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hul])(.+)$/gm, (_, line) => line ? `<p>${line}</p>` : '')
 }
 
 export default function MessageBubble({ message, onShowCypher, onShowGraph }: Props) {
@@ -47,7 +36,6 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
 
   return (
     <div className={`flex gap-3 items-start px-4 py-3 animate-fade-in-up ${isUser ? 'flex-row-reverse' : ''}`}>
-      {/* Avatar */}
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md ${
           isUser
@@ -55,13 +43,9 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             : 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-500/20'
         }`}
       >
-        {isUser
-          ? <User size={15} className="text-white" />
-          : <Bot size={15} className="text-white" />
-        }
+        {isUser ? <User size={15} className="text-white" /> : <Bot size={15} className="text-white" />}
       </div>
 
-      {/* Bubble */}
       <div className={`max-w-[85%] space-y-1.5 ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div
           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
@@ -75,14 +59,14 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           {isUser ? (
             <span className="whitespace-pre-wrap">{message.displayContent}</span>
           ) : (
-            <div
-              className="prose-chat"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(message.displayContent) }}
-            />
+            <div className="prose-chat">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.displayContent}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
 
-        {/* Collapsible: Thinking process */}
         {!isUser && message.thinking && (
           <div className="w-full">
             <button
@@ -91,7 +75,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             >
               <Brain size={11} />
               思考过程
-              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showThinking ? 'rotate-90' : ''}`}>▶</span>
+              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showThinking ? 'rotate-90' : ''}`}>›</span>
             </button>
             {showThinking && (
               <div className="mt-1.5 text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-think)] border border-[var(--color-border)] rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
@@ -101,7 +85,6 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           </div>
         )}
 
-        {/* Collapsible: Query result (raw JSON) */}
         {!isUser && message.queryResult && (
           <div className="w-full">
             <button
@@ -110,7 +93,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             >
               <Database size={11} />
               查询结果数据
-              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showQueryResult ? 'rotate-90' : ''}`}>▶</span>
+              <span className={`ml-auto transition-transform duration-200 text-[10px] ${showQueryResult ? 'rotate-90' : ''}`}>›</span>
             </button>
             {showQueryResult && (
               <div className="mt-1.5 text-xs text-emerald-300 bg-[var(--color-bg-code)] border border-emerald-500/20 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
@@ -120,9 +103,17 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           </div>
         )}
 
-        {/* Action buttons for assistant messages */}
-        {!isUser && (message.graphData || message.cypher) && (
+        {!isUser && (message.graphData || message.cypher || (!message.error && message.displayContent)) && (
           <div className="flex gap-2 mt-1 flex-wrap">
+            {!message.error && message.displayContent && (
+              <button
+                onClick={() => navigator.clipboard.writeText(message.displayContent)}
+                className="text-xs px-3 py-1.5 rounded-full bg-slate-700/30 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-slate-700/50 hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
+              >
+                <Copy size={11} />
+                复制
+              </button>
+            )}
             {message.graphData && message.graphData.nodes.length > 0 && (
               <button
                 onClick={onShowGraph}

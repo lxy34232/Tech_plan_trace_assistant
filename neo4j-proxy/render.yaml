@@ -13,3 +13,5 @@ services:
         sync: false
       - key: PROXY_API_KEY
         sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

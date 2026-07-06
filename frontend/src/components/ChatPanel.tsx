@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { SendHorizonal, RotateCcw, BookOpen } from 'lucide-react'
+import { SendHorizonal, RotateCcw, BookOpen, Square } from 'lucide-react'
 import type { Message, AppConfig, GraphData, Condition } from '../types'
 import { NODE_TYPE_LABEL } from '../types'
 import { sendChatMessage } from '../services/difyClient'
@@ -17,12 +17,27 @@ interface Props {
   onShowGraph: (data?: GraphData) => void
 }
 
+const MESSAGES_KEY = 'doors_trace_messages'
+const CONV_KEY = 'doors_trace_conversation_id'
+const MAX_SAVED = 50
+
 const SUGGESTED = [
   '查询所有高优先级的科技规划需求',
-  '需求"XXX"向下追溯到哪些科研项目？',
+  '需求“XXX”向下追溯到哪些科研项目？',
   '查询规划中有关高速重载机车的相关内容',
   '大纲包含哪些文本？每个文本规定了哪些需求？',
 ]
+
+function loadSavedMessages(): Message[] {
+  try {
+    const raw = localStorage.getItem(MESSAGES_KEY)
+    if (!raw) return []
+    const arr = JSON.parse(raw) as (Omit<Message, 'timestamp'> & { timestamp: string })[]
+    return arr.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))
+  } catch {
+    return []
+  }
+}
 
 export default function ChatPanel({
   config,
@@ -33,17 +48,39 @@ export default function ChatPanel({
   onGraphData,
   onShowGraph,
 }: Props) {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(loadSavedMessages)
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [conversationId, setConversationId] = useState<string | null>(null)
+  const [conversationId, setConversationId] = useState<string | null>(() => localStorage.getItem(CONV_KEY))
   const [cypherModal, setCypherModal] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    const done = messages.filter(m => !m.loading).slice(-MAX_SAVED)
+    try {
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(done))
+    } catch { /* quota exceeded */ }
+  }, [messages])
+
+  useEffect(() => {
+    if (conversationId) localStorage.setItem(CONV_KEY, conversationId)
+    else localStorage.removeItem(CONV_KEY)
+  }, [conversationId])
+
+  useEffect(() => () => abortRef.current?.abort(), [])
+
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setIsLoading(false)
+    setMessages(prev => prev.map(m => (m.loading ? { ...m, loading: false } : m)))
+  }, [])
 
   const handleSend = useCallback(
     async (text: string) => {
@@ -82,6 +119,8 @@ export default function ChatPanel({
         loading: true,
       }
 
+      const controller = new AbortController()
+      abortRef.current = controller
       setMessages(prev => [...prev, userMsg, loadingMsg])
       setInput('')
       setIsLoading(true)
@@ -114,8 +153,6 @@ export default function ChatPanel({
         onDone: (convId, _msgId, toolGraphData) => {
           if (convId) setConversationId(convId)
           const { displayContent, graphData: llmGraphData, cypher, queryResult } = parseAssistantResponse(accumulated)
-          // Prefer tool-sourced graph data (directly from Neo4j, always complete)
-          // over the LLM-formatted graph_data which may omit nodes
           const finalGraphData = toolGraphData ?? llmGraphData
           setMessages(prev =>
             prev.map(m =>
@@ -124,9 +161,8 @@ export default function ChatPanel({
                 : m,
             ),
           )
-          if (finalGraphData && finalGraphData.nodes.length > 0) {
-            onGraphData(finalGraphData)
-          }
+          if (finalGraphData && finalGraphData.nodes.length > 0) onGraphData(finalGraphData)
+          abortRef.current = null
           setIsLoading(false)
         },
         onError: (error) => {
@@ -137,9 +173,10 @@ export default function ChatPanel({
                 : m,
             ),
           )
+          abortRef.current = null
           setIsLoading(false)
         },
-      })
+      }, controller.signal)
     },
     [config, conversationId, isLoading, conditions, onClearConditions, onGraphData],
   )
@@ -152,15 +189,18 @@ export default function ChatPanel({
   }
 
   const handleReset = () => {
+    abortRef.current?.abort()
+    abortRef.current = null
     setMessages([])
     setConversationId(null)
     setInput('')
     setIsLoading(false)
+    localStorage.removeItem(MESSAGES_KEY)
+    localStorage.removeItem(CONV_KEY)
   }
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-bg-primary)]">
-      {/* Message list */}
       <div className="flex-1 overflow-y-auto py-2">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
@@ -210,7 +250,6 @@ export default function ChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      {/* Condition chips */}
       <ConditionBar
         conditions={conditions}
         onRemove={onRemoveCondition}
@@ -218,7 +257,6 @@ export default function ChatPanel({
         onUpdateValue={onUpdateConditionValue}
       />
 
-      {/* Input area */}
       <div className="border-t border-[var(--color-border)] p-4 bg-gradient-to-t from-[var(--color-bg-primary)] to-transparent">
         <div className="flex gap-2 items-end bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl px-4 py-2.5 focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/5 transition-all duration-300">
           <textarea
@@ -226,7 +264,7 @@ export default function ChatPanel({
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入问题，Enter 发送，Shift+Enter 换行…"
+            placeholder="输入问题，Enter 发送，Shift+Enter 换行..."
             rows={1}
             className="flex-1 bg-transparent text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] resize-none outline-none py-1 max-h-32"
             style={{ lineHeight: '1.5rem' }}
@@ -241,14 +279,25 @@ export default function ChatPanel({
             >
               <RotateCcw size={15} />
             </button>
-            <button
-              onClick={() => handleSend(input)}
-              disabled={!input.trim() || isLoading}
-              className="p-1.5 rounded-lg bg-[#C70019] hover:bg-[#e0001c] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-sm shadow-[rgba(199,0,25,0.3)]"
-              aria-label="发送消息"
-            >
-              <SendHorizonal size={15} />
-            </button>
+            {isLoading ? (
+              <button
+                onClick={handleStop}
+                className="p-1.5 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-all duration-200"
+                aria-label="停止生成"
+                title="停止生成"
+              >
+                <Square size={15} />
+              </button>
+            ) : (
+              <button
+                onClick={() => handleSend(input)}
+                disabled={!input.trim()}
+                className="p-1.5 rounded-lg bg-[#C70019] hover:bg-[#e0001c] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-sm shadow-[rgba(199,0,25,0.3)]"
+                aria-label="发送消息"
+              >
+                <SendHorizonal size={15} />
+              </button>
+            )}
           </div>
         </div>
         <p className="text-[10px] text-[var(--color-text-dim)] text-center mt-2 tracking-wide">
@@ -256,7 +305,6 @@ export default function ChatPanel({
         </p>
       </div>
 
-      {/* Cypher modal */}
       {cypherModal && (
         <div
           className="fixed inset-0 bg-[var(--color-overlay)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"

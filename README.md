@@ -55,10 +55,10 @@ npm run dev
 ## 数据库关系设计
 
 ```
-(TechOutline)-[:CONTAINS]->(TechText)
-(TechText)-[:SPECIFIES]->(TechRequirement)
-(TechRequirement)-[:DECOMPOSES_TO]->(TechTask)
-(TechTask)-[:IMPLEMENTED_BY]->(ResearchProject)
-(TechRequirement)-[:REFINES]->(TechRequirement)
-(TechTask)-[:DEPENDS_ON]->(TechTask)
+(TechRequirement)-[:HAS_OUTLINE]->(TechOutline)    // 需求关联大纲
+(TechOutline)-[:HAS_TEXT]->(TechText)              // 大纲关联文本
+(TechText)-[:HAS_TASK]->(TechTask)                 // 文本关联任务
+(TechTask)-[:HAS_PROJECT]->(ResearchProject)       // 任务关联项目
 ```
+
+追溯链路方向：需求 → 大纲 → 文本 → 任务 → 科研项目

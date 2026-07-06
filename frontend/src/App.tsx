@@ -25,8 +25,8 @@ function saveConfig(config: AppConfig) {
 
 function loadPanelWidth(): number {
   try {
-    const stored = localStorage.getItem(PANEL_WIDTH_KEY)
-    if (stored) return parseInt(stored, 10)
+    const stored = parseInt(localStorage.getItem(PANEL_WIDTH_KEY) ?? '', 10)
+    if (Number.isFinite(stored) && stored > 0) return stored
   } catch { /* ignore */ }
   return 480
 }
@@ -43,13 +43,9 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false)
   const [panelWidth, setPanelWidth] = useState(loadPanelWidth)
   const isResizing = useRef(false)
-
-  // Schema state (lifted from ChatPanel)
   const [schema, setSchema] = useState<SchemaData | null>(null)
   const [schemaLoading, setSchemaLoading] = useState(false)
   const [schemaError, setSchemaError] = useState<string | null>(null)
-
-  // Conditions state (lifted from ChatPanel)
   const [conditions, setConditions] = useState<Condition[]>([])
 
   const loadSchema = useCallback(async () => {
@@ -66,7 +62,10 @@ export default function App() {
     }
   }, [config.proxyUrl, config.proxyApiKey])
 
-  useEffect(() => { loadSchema() }, [loadSchema])
+  useEffect(() => {
+    const id = window.setTimeout(() => { void loadSchema() }, 0)
+    return () => window.clearTimeout(id)
+  }, [loadSchema])
 
   const handleAddCondition = useCallback((cond: Omit<Condition, 'id'>) => {
     setConditions(prev => {
@@ -83,7 +82,7 @@ export default function App() {
   const handleClearConditions = useCallback(() => setConditions([]), [])
 
   const handleUpdateConditionValue = useCallback((id: string, value: string) => {
-    setConditions(prev => prev.map(c => c.id === id ? { ...c, value } : c))
+    setConditions(prev => prev.map(c => (c.id === id ? { ...c, value } : c)))
   }, [])
 
   useEffect(() => {
@@ -94,7 +93,11 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!config.difyApiKey) setShowConfig(true)
+    if (!config.difyApiKey) {
+      const id = window.setTimeout(() => setShowConfig(true), 0)
+      return () => window.clearTimeout(id)
+    }
+    return undefined
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSaveConfig = useCallback((c: AppConfig) => {
@@ -121,18 +124,14 @@ export default function App() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing.current) return
-      const minWidth = 320
-      const maxWidth = window.innerWidth * 0.55
-      const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth)
-      setPanelWidth(newWidth)
+      setPanelWidth(Math.min(Math.max(e.clientX, 320), window.innerWidth * 0.55))
     }
     const handleMouseUp = () => {
-      if (isResizing.current) {
-        isResizing.current = false
-        document.body.style.cursor = ''
-        document.body.style.userSelect = ''
-        savePanelWidth(panelWidth)
-      }
+      if (!isResizing.current) return
+      isResizing.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      savePanelWidth(panelWidth)
     }
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseup', handleMouseUp)

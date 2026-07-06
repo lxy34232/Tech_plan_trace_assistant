@@ -34,13 +34,12 @@ export interface Message {
   error?: boolean
 }
 
-/** 图谱布局类型 */
 export type LayoutType = 'dagre' | 'circle' | 'grid'
 
 export const LAYOUT_OPTIONS: { value: LayoutType; label: string; icon: string }[] = [
-  { value: 'dagre', label: '树状布局', icon: '├─' },
-  { value: 'circle', label: '环状布局', icon: '◎' },
-  { value: 'grid', label: '网格布局', icon: '⊞' },
+  { value: 'dagre', label: '树状布局', icon: '┬' },
+  { value: 'circle', label: '环状布局', icon: '○' },
+  { value: 'grid', label: '网格布局', icon: '▦' },
 ]
 
 export interface AppConfig {
@@ -57,7 +56,6 @@ export const DEFAULT_CONFIG: AppConfig = {
   proxyApiKey: import.meta.env.VITE_PROXY_API_KEY ?? '',
 }
 
-// ── Schema (DB topology) ──────────────────────────────────────
 export interface SchemaNodeDef {
   label: string
   properties: string[]
@@ -72,27 +70,25 @@ export interface SchemaRelDef {
 export interface SchemaData {
   nodes: SchemaNodeDef[]
   relationships: SchemaRelDef[]
+  source?: 'live' | 'static_fallback'
 }
 
-// ── Condition chips ───────────────────────────────────────────
 export interface Condition {
   id: string
   nodeType: string
   property?: string
-  value?: string          // user-entered filter value, only set when property is defined
+  value?: string
 }
 
-// ── Node color palette ────────────────────────────────────────
 const PALETTE = [
-  '#3b82f6','#a855f7','#f59e0b','#10b981','#ef4444',
-  '#06b6d4','#f97316','#84cc16','#ec4899','#8b5cf6',
+  '#3b82f6', '#a855f7', '#f59e0b', '#10b981', '#ef4444',
+  '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#8b5cf6',
 ]
 
 export function getNodeColor(label: string): string {
   if (NODE_TYPE_COLOR[label]) return NODE_TYPE_COLOR[label]
-  // deterministic color for unknown labels
   let hash = 0
-  for (let i = 0; i < label.length; i++) hash = (hash * 31 + label.charCodeAt(i)) & 0xffffffff
+  for (let i = 0; i < label.length; i += 1) hash = (hash * 31 + label.charCodeAt(i)) & 0xffffffff
   return PALETTE[Math.abs(hash) % PALETTE.length]
 }
 
@@ -117,7 +113,6 @@ export const RELATION_TYPE_LABEL: Record<string, string> = {
   HAS_TEXT: '关联文本',
   HAS_TASK: '关联任务',
   HAS_PROJECT: '关联项目',
-  // legacy / future
   CONTAINS: '包含',
   SPECIFIES: '规定',
   DECOMPOSES_TO: '分解为',

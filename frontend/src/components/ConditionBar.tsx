@@ -37,7 +37,7 @@ export default function ConditionBar({ conditions, onRemove, onClear, onUpdateVa
                     type="text"
                     value={c.value ?? ''}
                     onChange={e => onUpdateValue(c.id, e.target.value)}
-                    placeholder="值…"
+                    placeholder="值"
                     className="bg-transparent outline-none border-b border-current/30 focus:border-current/70 transition-colors text-xs placeholder-current/40"
                     style={{
                       color: 'inherit',

@@ -7,7 +7,7 @@ import {
   ChevronRight, ChevronLeft, RotateCcw,
 } from 'lucide-react'
 import type { SchemaData, SchemaNodeDef, Condition } from '../types'
-import { getNodeColor, NODE_TYPE_LABEL } from '../types'
+import { getNodeColor, NODE_TYPE_LABEL, RELATION_TYPE_LABEL } from '../types'
 import { useTheme } from '../contexts/ThemeContext'
 
 cytoscape.use(dagre)
@@ -17,8 +17,8 @@ const DEFAULT_WIDTH = 246
 
 function loadSchemaWidth(): number {
   try {
-    const v = localStorage.getItem(SCHEMA_WIDTH_KEY)
-    if (v) return parseInt(v, 10)
+    const v = parseInt(localStorage.getItem(SCHEMA_WIDTH_KEY) ?? '', 10)
+    if (Number.isFinite(v) && v > 0) return v
   } catch { /* ignore */ }
   return DEFAULT_WIDTH
 }
@@ -41,9 +41,8 @@ interface Props {
 }
 
 function buildSchemaStyle(isDark: boolean) {
-  const edgeColor = isDark ? '#4d5780' : '#8094b0'
+  const edgeColor = isDark ? '#52587a' : '#8094b0'
   const edgeLabelColor = isDark ? '#94a3b8' : '#475569'
-  const edgeLabelBg = isDark ? '#0f1117' : '#f8fafc'
   const selectedBorder = isDark ? '#ffffff' : '#1e293b'
 
   return [
@@ -85,7 +84,7 @@ function buildSchemaStyle(isDark: boolean) {
     {
       selector: 'edge',
       style: {
-        width: 1.2,
+        width: 1.5,
         'line-color': edgeColor,
         'target-arrow-color': edgeColor,
         'target-arrow-shape': 'triangle',
@@ -94,10 +93,10 @@ function buildSchemaStyle(isDark: boolean) {
         'font-size': 8,
         'font-weight': 400,
         color: edgeLabelColor,
-        'text-background-color': edgeLabelBg,
-        'text-background-opacity': 0.88,
-        'text-background-padding': '2px',
-        'text-background-shape': 'roundrectangle',
+        'text-background-opacity': 0,
+        'text-outline-color': '#1e2130',
+        'text-outline-width': 2,
+        'text-outline-opacity': 0.85,
       },
     },
   ]
@@ -108,11 +107,9 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
   for (const node of schema.nodes) {
     const color = getNodeColor(node.label)
     const nodeLabel = NODE_TYPE_LABEL[node.label] ?? node.label
-    // ~10px per char at font-size 10, 10px padding each side baked in
     const nodeWidth = Math.max(50, nodeLabel.length * 10 + 20)
-    const nodeHeight = 30
     elements.push({
-      data: { id: node.label, label: nodeLabel, color, borderColor: color, nodeWidth, nodeHeight, raw: node },
+      data: { id: node.label, label: nodeLabel, color, borderColor: color, nodeWidth, nodeHeight: 30, raw: node },
     })
   }
   const seen = new Set<string>()
@@ -121,7 +118,7 @@ function buildSchemaElements(schema: SchemaData): cytoscape.ElementDefinition[] 
     if (seen.has(key) || !rel.from || !rel.to) continue
     seen.add(key)
     elements.push({
-      data: { id: key, source: rel.from, target: rel.to, label: rel.type.replace(/_/g, ' ') },
+      data: { id: key, source: rel.from, target: rel.to, label: RELATION_TYPE_LABEL[rel.type] ?? rel.type.replace(/_/g, ' ') },
     })
   }
   return elements
@@ -133,30 +130,28 @@ export default function SchemaPanel({
   const { theme } = useTheme()
   const isDark = theme === 'dark'
   const schemaStyle = useMemo(() => buildSchemaStyle(isDark), [isDark])
-
+  const elements = useMemo(() => (schema ? buildSchemaElements(schema) : []), [schema])
   const [expanded, setExpanded] = useState(defaultExpanded)
   const [selectedNode, setSelectedNode] = useState<SchemaNodeDef | null>(null)
   const [width, setWidth] = useState(loadSchemaWidth)
-
   const widthRef = useRef(width)
-  widthRef.current = width
   const isDraggingWidth = useRef(false)
   const cyRef = useRef<cytoscape.Core | null>(null)
 
-  // Sync Cytoscape style when theme changes
+  useEffect(() => {
+    widthRef.current = width
+  }, [width])
+
   useEffect(() => {
     const cy = cyRef.current
     if (!cy) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cy.style().fromJson(schemaStyle as any).update()
+    cy.style().fromJson(schemaStyle as unknown as cytoscape.StylesheetCSS[]).update()
   }, [schemaStyle])
 
-  // Fit when panel expands
   useEffect(() => {
     if (expanded) setTimeout(() => cyRef.current?.fit(undefined, 20), 80)
   }, [expanded])
 
-  // Width drag — left edge handle
   const handleWidthDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     isDraggingWidth.current = true
@@ -214,7 +209,6 @@ export default function SchemaPanel({
   const nodeCount = schema?.nodes.length ?? 0
   const relCount = schema?.relationships.length ?? 0
 
-  // ── Collapsed strip ──────────────────────────────────────────────────────
   if (!expanded) {
     return (
       <div className="w-8 shrink-0 flex flex-col items-center border-l border-[var(--color-border)] bg-[var(--color-bg-secondary)]/40">
@@ -225,20 +219,15 @@ export default function SchemaPanel({
         >
           <ChevronLeft size={13} className="text-[var(--color-text-dim)]" />
         </button>
-        <div
-          className="mt-4 text-[10px] text-[var(--color-text-dim)] select-none tracking-widest"
-          style={{ writingMode: 'vertical-rl' }}
-        >
+        <div className="mt-4 text-[10px] text-[var(--color-text-dim)] select-none tracking-widest" style={{ writingMode: 'vertical-rl' }}>
           数据库结构
         </div>
       </div>
     )
   }
 
-  // ── Expanded panel ────────────────────────────────────────────────────────
   return (
     <div className="shrink-0 flex h-full" style={{ width }}>
-      {/* Left edge — resize handle */}
       <div
         className="w-1.5 cursor-col-resize bg-transparent hover:bg-[var(--color-accent)]/30 active:bg-[var(--color-accent)]/50 transition-colors duration-150 shrink-0 relative group"
         onMouseDown={handleWidthDragStart}
@@ -246,9 +235,7 @@ export default function SchemaPanel({
         <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 h-8 w-0.5 rounded-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-accent)] transition-colors" />
       </div>
 
-      {/* Content */}
       <div className="flex-1 flex flex-col min-w-0 border-l border-[var(--color-border)] bg-[var(--color-bg-secondary)]/40">
-        {/* Header */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--color-border)] shrink-0">
           <Database size={12} className="text-indigo-400 shrink-0" />
           <span className="text-xs font-medium text-[var(--color-text-secondary)] flex-1 min-w-0 truncate tracking-wide">数据库结构</span>
@@ -270,7 +257,6 @@ export default function SchemaPanel({
           </button>
         </div>
 
-        {/* Controls */}
         {schema && schema.nodes.length > 0 && (
           <div className="flex items-center gap-0.5 px-2 py-1 border-b border-[var(--color-border)] shrink-0">
             <button onClick={handleZoomIn} title="放大" className="w-6 h-6 flex items-center justify-center rounded text-[var(--color-text-dim)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] transition-all">
@@ -289,11 +275,10 @@ export default function SchemaPanel({
           </div>
         )}
 
-        {/* Mini graph */}
         {schema && schema.nodes.length > 0 && (
           <div className="flex-1 min-h-0 relative">
             <CytoscapeComponent
-              elements={buildSchemaElements(schema)}
+              elements={elements}
               style={{ width: '100%', height: '100%', background: 'transparent' }}
               stylesheet={schemaStyle as unknown as cytoscape.StylesheetCSS[]}
               layout={LAYOUT_OPTS}
@@ -302,17 +287,13 @@ export default function SchemaPanel({
           </div>
         )}
 
-        {/* Error / empty */}
-        {error && (
-          <div className="px-3 py-2 text-xs text-red-400 shrink-0">{error}</div>
-        )}
+        {error && <div className="px-3 py-2 text-xs text-red-400 shrink-0">{error}</div>}
         {!schema && !loading && !error && (
           <div className="px-3 py-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
             请在设置中配置代理服务地址以加载数据库结构
           </div>
         )}
 
-        {/* Selected node properties */}
         {selectedNode && (
           <div className="border-t border-[var(--color-border)] px-3 py-2.5 shrink-0 max-h-52 overflow-y-auto animate-fade-in">
             <div className="flex items-center gap-1.5 mb-2">

@@ -9,26 +9,41 @@ interface Props {
 }
 
 function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return '—'
+  if (value === null || value === undefined) return '-'
   if (typeof value === 'boolean') return value ? '是' : '否'
   if (typeof value === 'number') return String(value)
-  if (typeof value === 'string') return value || '—'
+  if (typeof value === 'string') return value || '-'
   return JSON.stringify(value)
 }
 
 const PROP_LABELS: Record<string, string> = {
-  reqId: '需求ID', outlineId: '大纲ID', textId: '文本ID', taskId: '任务ID', projectId: '项目ID',
-  title: '标题', name: '名称', content: '内容', description: '描述',
-  priority: '优先级', status: '状态', version: '版本', department: '部门',
-  owner: '负责人', principal: '负责人', budget: '预算',
-  startDate: '开始日期', endDate: '结束日期', approvedDate: '批准日期',
-  createdAt: '创建时间', updatedAt: '更新时间',
+  reqId: '需求ID',
+  outlineId: '大纲ID',
+  textId: '文本ID',
+  taskId: '任务ID',
+  projectId: '项目ID',
+  title: '标题',
+  name: '名称',
+  content: '内容',
+  description: '描述',
+  priority: '优先级',
+  status: '状态',
+  version: '版本',
+  department: '部门',
+  owner: '负责人',
+  principal: '负责人',
+  budget: '预算',
+  startDate: '开始日期',
+  endDate: '结束日期',
+  approvedDate: '批准日期',
+  createdAt: '创建时间',
+  updatedAt: '更新时间',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  '高': 'text-red-400 bg-red-500/10',
-  '中': 'text-amber-400 bg-amber-500/10',
-  '低': 'text-green-400 bg-green-500/10',
+  高: 'text-red-400 bg-red-500/10',
+  中: 'text-amber-400 bg-amber-500/10',
+  低: 'text-green-400 bg-green-500/10',
 }
 
 export default function NodeDetail({ node, onClose }: Props) {
@@ -44,20 +59,19 @@ export default function NodeDetail({ node, onClose }: Props) {
 
   const color = NODE_TYPE_COLOR[node.type] ?? '#64748b'
   const typeLabel = NODE_TYPE_LABEL[node.type] ?? node.type
-
   const importantKeys = ['title', 'name', 'content', 'description', 'priority', 'status', 'department', 'owner', 'principal', 'budget']
   const dateKeys = ['startDate', 'endDate', 'approvedDate', 'createdAt', 'updatedAt']
   const idKeys = ['reqId', 'outlineId', 'textId', 'taskId', 'projectId', 'version']
 
   const sectionIcons: Record<string, React.ReactNode> = {
-    '基本信息': <FileText size={12} />,
-    'ID & 版本': <Hash size={12} />,
-    '时间信息': <Calendar size={12} />,
+    基本信息: <FileText size={12} />,
+    'ID 与版本': <Hash size={12} />,
+    时间信息: <Calendar size={12} />,
   }
 
   const grouped = [
     { group: '基本信息', keys: importantKeys },
-    { group: 'ID & 版本', keys: idKeys },
+    { group: 'ID 与版本', keys: idKeys },
     { group: '时间信息', keys: dateKeys },
   ]
 
@@ -77,7 +91,7 @@ export default function NodeDetail({ node, onClose }: Props) {
         }`}>{str}</span>
       )
     }
-    if (key === 'budget' && typeof value === 'string' && !isNaN(Number(value))) {
+    if (key === 'budget' && typeof value === 'string' && !Number.isNaN(Number(value))) {
       return <span className="text-xs text-amber-400 font-mono">{Number(value).toLocaleString()} 万元</span>
     }
     return <span className="text-[var(--color-text-primary)] leading-snug text-xs font-mono break-words">{formatValue(value)}</span>
@@ -85,7 +99,6 @@ export default function NodeDetail({ node, onClose }: Props) {
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-bg-card)] border-l border-[var(--color-border)] w-80 shrink-0 overflow-hidden animate-slide-in-right shadow-xl shadow-[var(--color-shadow)]">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]/50">
         <div className="relative">
           <div className="w-3.5 h-3.5 rounded-full" style={{ background: color }} />
@@ -104,7 +117,6 @@ export default function NodeDetail({ node, onClose }: Props) {
         </button>
       </div>
 
-      {/* Properties */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {grouped.map(({ group, keys }) => {
           const rows = keys
@@ -143,7 +155,6 @@ export default function NodeDetail({ node, onClose }: Props) {
           )
         })}
 
-        {/* Tags for node types and domain_id */}
         <div className="pt-2 border-t border-[var(--color-border)]/50">
           <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] mb-2.5">
             <Tag size={12} />
@@ -156,7 +167,7 @@ export default function NodeDetail({ node, onClose }: Props) {
               </span>
             ))}
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/30 text-slate-500 font-mono">
-              ID: {node.id.slice(0, 12)}…
+              ID: {node.id.slice(0, 12)}...
             </span>
           </div>
         </div>

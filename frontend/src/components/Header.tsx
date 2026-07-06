@@ -13,10 +13,8 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
 
   return (
     <header className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-bg-secondary)]/95 backdrop-blur-md border-b border-[var(--color-border)] shrink-0 relative z-20">
-      {/* Subtle top glow bar */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
 
-      {/* Brand */}
       <div className="flex items-center gap-2.5 mr-auto">
         <div className="relative">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#C70019] to-[#8a0011] flex items-center justify-center shadow-lg shadow-[rgba(199,0,25,0.25)]">
@@ -30,7 +28,6 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
         </div>
       </div>
 
-      {/* Mobile tab switcher */}
       {isMobile && (
         <div className="flex bg-[var(--color-bg-primary)] rounded-lg p-0.5 border border-[var(--color-border)] shadow-inner">
           <button
@@ -58,7 +55,6 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
         </div>
       )}
 
-      {/* Theme toggle */}
       <button
         onClick={toggleTheme}
         className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"
@@ -68,7 +64,6 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
         {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
       </button>
 
-      {/* Config button */}
       <button
         onClick={onOpenConfig}
         className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] rounded-lg hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"

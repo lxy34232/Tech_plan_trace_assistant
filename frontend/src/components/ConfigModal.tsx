@@ -11,8 +11,12 @@ interface Props {
 function Field({
   label, hint, value, onChange, type = 'text', placeholder,
 }: {
-  label: string; hint?: string; value: string; onChange: (v: string) => void
-  type?: string; placeholder?: string
+  label: string
+  hint?: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  placeholder?: string
 }) {
   const [show, setShow] = useState(false)
   const isPassword = type === 'password'
@@ -26,7 +30,7 @@ function Field({
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)] transition-all duration-200 pr-9"
+          className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(199,0,25,0.1)] transition-all duration-200 pr-9"
         />
         {isPassword && (
           <button
@@ -46,7 +50,6 @@ function Field({
 
 export default function ConfigModal({ config, onSave, onClose }: Props) {
   const [draft, setDraft] = useState<AppConfig>({ ...config })
-
   const set = (key: keyof AppConfig) => (v: string) => setDraft(d => ({ ...d, [key]: v }))
 
   const handleSave = () => {
@@ -63,7 +66,6 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl shadow-[var(--color-shadow)] animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
           <h2 className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
             <SettingsIcon />
@@ -78,9 +80,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-6 py-5 space-y-5">
-          {/* Dify section */}
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
@@ -94,7 +94,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
               value={draft.difyBaseUrl}
               onChange={set('difyBaseUrl')}
               placeholder="https://api.dify.ai/v1"
-              hint="Dify Cloud 默认值 https://api.dify.ai/v1，自托管请填写实际地址"
+              hint="Dify Cloud 默认值为 https://api.dify.ai/v1，自托管请填写实际地址"
             />
             <Field
               label="Dify API Key"
@@ -105,7 +105,6 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
             />
           </div>
 
-          {/* Proxy section */}
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center">
@@ -119,7 +118,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
               value={draft.proxyUrl}
               onChange={set('proxyUrl')}
               placeholder="https://your-proxy.onrender.com"
-              hint="Neo4j 代理服务的 URL（由 Dify 调用，前端暂不直连代理）"
+              hint="Neo4j 代理服务的 URL，用于 Schema 读取和 Dify 工具配置"
             />
             <Field
               label="代理 API Key"
@@ -141,7 +140,6 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           </a>
         </div>
 
-        {/* Footer */}
         <div className="flex gap-2 justify-end px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]/30 rounded-b-2xl">
           <button
             onClick={onClose}
