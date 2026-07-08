@@ -38,6 +38,7 @@
   --color-primary-active: #2563eb;
   --color-primary-soft: rgba(59,130,246,0.15);
   --color-primary-border: rgba(96,165,250,0.35);
+  --color-primary-text: #69b1ff;
 
   --color-accent: #3b82f6;
   --color-accent-hover: #60a5fa;
@@ -93,6 +94,7 @@
   --color-primary-active: #0958d9;
   --color-primary-soft: rgba(22,119,255,0.10);
   --color-primary-border: rgba(22,119,255,0.35);
+  --color-primary-text: #0958d9;
 
   --color-accent: #1677ff;
   --color-accent-hover: #0958d9;
@@ -237,7 +239,7 @@ body {
 .prose-chat p:last-child { margin-bottom: 0; }
 .prose-chat code {
   background: var(--color-primary-soft);
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   padding: 1px 5px;
   border-radius: 4px;
   font-size: 0.85em;
@@ -257,7 +259,7 @@ body {
 .prose-chat ul { padding-left: 1.25rem; margin: 0.25rem 0; }
 .prose-chat li { margin: 0.15rem 0; }
 .prose-chat strong { color: var(--color-text-primary); font-weight: 600; }
-.prose-chat em { color: var(--color-primary); font-style: normal; }
+.prose-chat em { color: var(--color-primary-text); font-style: normal; }
 .prose-chat h2, .prose-chat h3 {
   color: var(--color-text-primary);
   font-weight: 600;
@@ -272,7 +274,7 @@ body {
 }
 .prose-chat th {
   background: var(--color-primary-soft);
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   font-weight: 600;
   padding: 0.5rem 0.75rem;
   text-align: left;
