@@ -206,10 +206,10 @@ export default function ChatPanel({
           <div className="flex flex-col items-center justify-center h-full gap-6 px-6">
             <div className="text-center animate-fade-in">
               <div className="relative inline-block mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-700/20 border border-indigo-500/20 flex items-center justify-center animate-pulse-glow">
-                  <BookOpen className="text-indigo-400" size={30} />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-primary-soft)] to-[var(--color-primary-soft)] border border-[var(--color-primary-border)] flex items-center justify-center animate-pulse-glow">
+                  <BookOpen className="text-[var(--color-primary-text)]" size={30} />
                 </div>
-                <div className="absolute -inset-1 rounded-2xl bg-indigo-500/5 blur-xl -z-10" />
+                <div className="absolute -inset-1 rounded-2xl bg-[var(--color-primary-soft)] blur-xl -z-10" />
               </div>
               <h2 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1.5 tracking-tight">DOORS 追溯问答</h2>
               <p className="text-sm text-[var(--color-text-muted)]">用自然语言查询科技规划数据库，支持全链路追溯分析</p>
@@ -220,12 +220,12 @@ export default function ChatPanel({
                 <button
                   key={s}
                   onClick={() => handleSend(s)}
-                  className="text-left text-sm px-4 py-3 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/40 hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 animate-fade-in-up group"
+                  className="text-left text-sm px-4 py-3 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary-border)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 animate-fade-in-up group"
                   style={{ animationDelay: `${i * 0.08 + 0.1}s` }}
                 >
                   <span className="flex items-center gap-2.5">
-                    <span className="w-5 h-5 rounded-md bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition-colors">
-                      <span className="text-[10px] text-indigo-400 font-medium">{i + 1}</span>
+                    <span className="w-5 h-5 rounded-md bg-[var(--color-primary-soft)] flex items-center justify-center shrink-0 group-hover:bg-[var(--color-primary-soft)] transition-colors">
+                      <span className="text-[10px] text-[var(--color-primary-text)] font-medium">{i + 1}</span>
                     </span>
                     {s}
                   </span>
@@ -258,7 +258,7 @@ export default function ChatPanel({
       />
 
       <div className="border-t border-[var(--color-border)] p-4 bg-gradient-to-t from-[var(--color-bg-primary)] to-transparent">
-        <div className="flex gap-2 items-end bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl px-4 py-2.5 focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/5 transition-all duration-300">
+        <div className="flex gap-2 items-end bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl px-4 py-2.5 focus-within:border-[var(--color-primary-border)] focus-within:shadow-[var(--shadow-md)] transition-all duration-300">
           <textarea
             ref={inputRef}
             value={input}
@@ -274,7 +274,7 @@ export default function ChatPanel({
             <button
               onClick={handleReset}
               title="清空对话"
-              className="p-1.5 rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text-secondary)] hover:bg-slate-700/50 transition-all duration-200"
+              className="p-1.5 rounded-lg text-[var(--color-text-dim)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200"
               aria-label="清空对话"
             >
               <RotateCcw size={15} />
@@ -282,7 +282,7 @@ export default function ChatPanel({
             {isLoading ? (
               <button
                 onClick={handleStop}
-                className="p-1.5 rounded-lg bg-slate-700 text-white hover:bg-slate-600 transition-all duration-200"
+                className="p-1.5 rounded-lg bg-[var(--color-bg-hover)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-border)] transition-all duration-200"
                 aria-label="停止生成"
                 title="停止生成"
               >
@@ -292,7 +292,7 @@ export default function ChatPanel({
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="p-1.5 rounded-lg bg-[#C70019] hover:bg-[#e0001c] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-sm shadow-[rgba(199,0,25,0.3)]"
+                className="p-1.5 rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-[var(--shadow-sm)]"
                 aria-label="发送消息"
               >
                 <SendHorizonal size={15} />
@@ -311,14 +311,14 @@ export default function ChatPanel({
           onClick={() => setCypherModal(null)}
         >
           <div
-            className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-[var(--color-shadow)] animate-scale-in"
+            className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl max-w-2xl w-full p-6 shadow-[var(--shadow-lg)] animate-scale-in"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-sm font-semibold text-[var(--color-text-emphasis)]">执行的 Cypher 查询</h3>
               <button onClick={() => setCypherModal(null)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-lg leading-none">×</button>
             </div>
-            <pre className="text-xs text-emerald-300 bg-[var(--color-bg-code)] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap font-mono">
+            <pre className="text-xs text-[var(--color-text-primary)] bg-[var(--color-bg-code)] rounded-xl p-4 overflow-x-auto whitespace-pre-wrap font-mono">
               {cypherModal}
             </pre>
           </div>
