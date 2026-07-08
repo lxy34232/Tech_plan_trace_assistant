@@ -26,7 +26,7 @@
 | `bg-indigo-600` | `bg-[var(--color-primary)]` | 主实色 |
 | `bg-indigo-500/10` `/15` | `bg-[var(--color-primary-soft)]` | 软填充 |
 | `bg-indigo-500/20`（hover 态） | `hover:bg-[var(--color-primary-soft)]` | |
-| `text-indigo-300` `text-indigo-400` | `text-[var(--color-primary)]` | |
+| `text-indigo-300` `text-indigo-400` | `text-[var(--color-primary-text)]` | primary 作**文字/图标**色用 `-text`（AA 安全）；作**填充/边框/环**用 `--color-primary` |
 | `border-indigo-500/20` `/25` `/40` `/50` | `border-[var(--color-primary-border)]` | |
 | `hover:border-indigo-500/40` | `hover:border-[var(--color-primary-border)]` | |
 | `from-indigo-500 to-indigo-700` | `from-[var(--color-primary)] to-[var(--color-primary-active)]` | 头像渐变 |
@@ -43,7 +43,7 @@
 | 语义徽章 `text-red-400 bg-red-500/10` | `text-[var(--color-danger-text)] bg-[var(--color-danger-soft)]` | |
 | 语义徽章 `text-amber-400 bg-amber-500/10` | `text-[var(--color-warning-text)] bg-[var(--color-warning-soft)]` | |
 | 语义徽章 `text-green-400 bg-green-500/10` | `text-[var(--color-success-text)] bg-[var(--color-success-soft)]` | |
-| 语义徽章 `text-blue-400 bg-blue-500/10` | `text-[var(--color-primary)] bg-[var(--color-primary-soft)]` | |
+| 语义徽章 `text-blue-400 bg-blue-500/10` | `text-[var(--color-primary-text)] bg-[var(--color-primary-soft)]` | |
 
 > 验证方式说明：本工程为纯视觉重构，无法用单元测试断言观感。每个任务的「测试」= (a) `npm run build` 通过；(b) `grep` 断言目标旧值已清除；最终 Task 10 用 Playwright 双主题截图 + 对比度核验做视觉回归。现有 `npm test`（responseParser 单测）全程不得回归。
 
@@ -56,7 +56,7 @@
 
 **Interfaces:**
 - Produces（后续所有任务消费的 CSS 变量，均在 `:root`=dark 与 `[data-theme="light"]` 两处定义，运行时随主题切换）：
-  - Primary: `--color-primary`, `--color-primary-hover`, `--color-primary-active`, `--color-primary-soft`, `--color-primary-border`
+  - Primary: `--color-primary`, `--color-primary-hover`, `--color-primary-active`, `--color-primary-soft`, `--color-primary-border`, `--color-primary-text`（light `#0958d9` / dark `#69b1ff`，用于 primary 作文字/图标色，AA 达标）
   - 语义: `--color-success`, `--color-success-text`, `--color-success-soft`, `--color-warning`, `--color-warning-text`, `--color-warning-soft`, `--color-danger`, `--color-danger-text`, `--color-danger-soft`, `--color-danger-border`
   - Elevation: `--shadow-xs`, `--shadow-sm`, `--shadow-md`, `--shadow-lg`
   - 中性面/文字/边框：沿用现有键名（`--color-bg-*`, `--color-text-*`, `--color-border`），新增 `--color-border-strong`
@@ -109,6 +109,7 @@
   --color-primary-active: #2563eb;
   --color-primary-soft: rgba(59,130,246,0.15);
   --color-primary-border: rgba(96,165,250,0.35);
+  --color-primary-text: #69b1ff;
 
   --color-accent: #3b82f6;
   --color-accent-hover: #60a5fa;
@@ -167,6 +168,7 @@
   --color-primary-active: #0958d9;
   --color-primary-soft: rgba(22,119,255,0.10);
   --color-primary-border: rgba(22,119,255,0.35);
+  --color-primary-text: #0958d9;
 
   --color-accent: #1677ff;
   --color-accent-hover: #0958d9;
@@ -309,7 +311,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
   - 查询结果按钮（第 92 行）→ 同上 chip 基类；`<Database size={11} />` → 加 `className="text-[var(--color-success-text)]"`
   - 查询结果内容框（第 99 行）`text-emerald-300 bg-[var(--color-bg-code)] border border-emerald-500/20` → `text-[var(--color-text-secondary)] bg-[var(--color-bg-code)] border border-[var(--color-border)]`
   - 复制按钮（第 111 行）`bg-slate-700/30 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-slate-700/50 hover:text-[var(--color-text-primary)]` → `bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]`
-  - 查看图谱按钮（第 120 行，主强调 chip）`bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/40` → `bg-[var(--color-primary-soft)] border border-[var(--color-primary-border)] text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:border-[var(--color-primary-border)]`
+  - 查看图谱按钮（第 120 行，主强调 chip）`bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/40` → `bg-[var(--color-primary-soft)] border border-[var(--color-primary-border)] text-[var(--color-primary-text)] hover:bg-[var(--color-primary-soft)] hover:border-[var(--color-primary-border)]`
   - Cypher 按钮（第 129 行）→ 同「复制按钮」的中性 chip 基类。
 
 - [ ] **Step 5: 验证**
@@ -341,13 +343,13 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 - [ ] **Step 1: 空态图标区**（第 209–212 行）
   - `from-indigo-500/20 to-indigo-700/20 border border-indigo-500/20` → `from-[var(--color-primary-soft)] to-[var(--color-primary-soft)] border border-[var(--color-primary-border)]`
-  - `<BookOpen className="text-indigo-400" .../>` → `className="text-[var(--color-primary)]"`
+  - `<BookOpen className="text-indigo-400" .../>` → `className="text-[var(--color-primary-text)]"`
   - 第 212 行 `bg-indigo-500/5` → `bg-[var(--color-primary-soft)]`
 
 - [ ] **Step 2: 建议问题卡**（第 223/227/228 行）
   - 第 223 行 `hover:border-indigo-500/40` → `hover:border-[var(--color-primary-border)]`
   - 第 227 行 `bg-indigo-500/10 ... group-hover:bg-indigo-500/20` → `bg-[var(--color-primary-soft)] ... group-hover:bg-[var(--color-primary-soft)]`
-  - 第 228 行 `text-indigo-400` → `text-[var(--color-primary)]`
+  - 第 228 行 `text-indigo-400` → `text-[var(--color-primary-text)]`
 
 - [ ] **Step 3: 输入容器聚焦态**（第 261 行）
   - `focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/5` → `focus-within:border-[var(--color-primary-border)] focus-within:shadow-[var(--shadow-md)]`
@@ -395,11 +397,11 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 - [ ] **Step 3: 关闭按钮 hover**（第 76 行）`hover:bg-slate-700/50` → `hover:bg-[var(--color-bg-hover)]`
 
-- [ ] **Step 4: Dify 区块图标**（第 86/87 行）`bg-indigo-500/10` → `bg-[var(--color-primary-soft)]`；`<Zap ... className="text-indigo-400" />` → `text-[var(--color-primary)]`
+- [ ] **Step 4: Dify 区块图标**（第 86/87 行）`bg-indigo-500/10` → `bg-[var(--color-primary-soft)]`；`<Zap ... className="text-indigo-400" />` → `text-[var(--color-primary-text)]`
 
 - [ ] **Step 5: Neo4j 区块图标**（第 110 行）`bg-slate-500/10` → `bg-[var(--color-bg-hover)]`（图标已用 token 文字色，不改）
 
-- [ ] **Step 6: 外链**（第 136 行）`text-indigo-400 hover:text-indigo-300` → `text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]`
+- [ ] **Step 6: 外链**（第 136 行）`text-indigo-400 hover:text-indigo-300` → `text-[var(--color-primary-text)] hover:text-[var(--color-primary)]`
 
 - [ ] **Step 7: 取消/保存按钮**
   - 取消（第 146 行）`hover:bg-slate-700/30` → `hover:bg-[var(--color-bg-hover)]`
@@ -445,7 +447,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 - [ ] **Step 2: 状态徽章色**（第 85–90 行）逐项替换：
   - `text-green-400 bg-green-500/10` → `text-[var(--color-success-text)] bg-[var(--color-success-soft)]`
   - `text-[var(--color-text-secondary)] bg-slate-500/10` → `text-[var(--color-text-secondary)] bg-[var(--color-bg-hover)]`
-  - `text-blue-400 bg-blue-500/10` → `text-[var(--color-primary)] bg-[var(--color-primary-soft)]`
+  - `text-blue-400 bg-blue-500/10` → `text-[var(--color-primary-text)] bg-[var(--color-primary-soft)]`
   - `text-[var(--color-text-muted)] bg-slate-500/5` → `text-[var(--color-text-muted)] bg-[var(--color-bg-hover)]`
   - 末项 `text-[var(--color-text-primary)] bg-slate-500/10` → `text-[var(--color-text-primary)] bg-[var(--color-bg-hover)]`
 
@@ -458,7 +460,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   - 第 149 行 `<Check ... className="text-green-400" />` → `className="text-[var(--color-success-text)]"`
 
 - [ ] **Step 5: 节点标签徽章**（第 166/170 行）
-  - `bg-indigo-500/10 text-indigo-400` → `bg-[var(--color-primary-soft)] text-[var(--color-primary)]`
+  - `bg-indigo-500/10 text-indigo-400` → `bg-[var(--color-primary-soft)] text-[var(--color-primary-text)]`
   - `bg-slate-700/30 text-slate-500` → `bg-[var(--color-bg-hover)] text-[var(--color-text-muted)]`
 
 - [ ] **Step 6: 验证**
@@ -488,7 +490,7 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `--color-primary*`, `--color-danger-text`, `--color-bg-*`, `--color-accent`（已是蓝）。
 
-- [ ] **Step 1: Database 图标**（第 258 行）`text-indigo-400` → `text-[var(--color-primary)]`
+- [ ] **Step 1: Database 图标**（第 258 行）`text-indigo-400` → `text-[var(--color-primary-text)]`
 
 - [ ] **Step 2: 错误重试按钮**（第 265 行）`text-red-400 hover:text-red-300` → `text-[var(--color-danger-text)] hover:text-[var(--color-danger)]`
 
@@ -561,10 +563,10 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 - [ ] **Step 2: GraphPanel DOM 内残留 indigo**
   - 工具按钮 hover（第 255/258/261/264/269/296 行）`hover:border-indigo-500/40` → `hover:border-[var(--color-primary-border)]`
-  - 布局菜单激活项（第 282 行）`bg-indigo-500/15 text-indigo-300 border border-indigo-500/25` → `bg-[var(--color-primary-soft)] text-[var(--color-primary)] border border-[var(--color-primary-border)]`
+  - 布局菜单激活项（第 282 行）`bg-indigo-500/15 text-indigo-300 border border-indigo-500/25` → `bg-[var(--color-primary-soft)] text-[var(--color-primary-text)] border border-[var(--color-primary-border)]`
   - 下拉/设置浮层阴影（第 275/302 行）`shadow-2xl shadow-[var(--color-shadow)]` → `shadow-[var(--shadow-md)]`
   - range 滑块（第 306/313 行）`accent-indigo-500` → `accent-[var(--color-primary)]`
-  - 计数徽章数字（第 325/328 行）`text-indigo-400` → `text-[var(--color-primary)]`
+  - 计数徽章数字（第 325/328 行）`text-indigo-400` → `text-[var(--color-primary-text)]`
   - 图例/浮层阴影（第 332 行）`shadow-lg shadow-[var(--color-shadow)]` → `shadow-[var(--shadow-md)]`
 
 - [ ] **Step 3: SchemaPanel `buildSchemaStyle` 硬编码底色**（第 98 行）
