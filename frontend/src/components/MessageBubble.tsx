@@ -18,14 +18,14 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
   if (message.loading) {
     return (
       <div className="flex gap-3 items-start px-4 py-3 animate-fade-in">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-active)] flex items-center justify-center shrink-0 shadow-[var(--shadow-sm)]">
           <Bot size={15} className="text-white" />
         </div>
         <div className="flex items-center gap-1.5 mt-2 px-4 py-3 rounded-2xl rounded-tl-sm bg-[var(--color-bg-card)] border border-[var(--color-border)]">
           {[0, 1, 2].map(i => (
             <span
               key={i}
-              className="w-2 h-2 rounded-full bg-indigo-400/60"
+              className="w-2 h-2 rounded-full bg-[var(--color-primary)]/60"
               style={{ animation: `dot-bounce 1.4s ${i * 0.2}s infinite ease-in-out` }}
             />
           ))}
@@ -39,8 +39,8 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md ${
           isUser
-            ? 'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-500/20'
-            : 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-500/20'
+            ? 'bg-gradient-to-br from-[var(--color-text-muted)] to-[var(--color-text-secondary)] shadow-[var(--shadow-sm)]'
+            : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-active)] shadow-[var(--shadow-sm)]'
         }`}
       >
         {isUser ? <User size={15} className="text-white" /> : <Bot size={15} className="text-white" />}
@@ -50,10 +50,10 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
         <div
           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
             isUser
-              ? 'bg-indigo-600 text-white rounded-tr-sm shadow-md shadow-indigo-600/15'
+              ? 'bg-[var(--color-primary)] text-white rounded-tr-sm shadow-[var(--shadow-sm)]'
               : message.error
-                ? 'bg-red-950/60 border border-red-800/50 text-red-300 rounded-tl-sm'
-                : 'bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-tl-sm shadow-sm'
+                ? 'bg-[var(--color-danger-soft)] border border-[var(--color-danger-border)] text-[var(--color-danger-text)] rounded-tl-sm'
+                : 'bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-tl-sm shadow-[var(--shadow-sm)]'
           }`}
         >
           {isUser ? (
@@ -71,9 +71,9 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           <div className="w-full">
             <button
               onClick={() => setShowThinking(!showThinking)}
-              className="text-xs px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/30 transition-all duration-200 flex items-center gap-1.5 w-full"
+              className="text-xs px-3 py-1.5 rounded-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5 w-full"
             >
-              <Brain size={11} />
+              <Brain size={11} className="text-[var(--color-warning-text)]" />
               思考过程
               <span className={`ml-auto transition-transform duration-200 text-[10px] ${showThinking ? 'rotate-90' : ''}`}>›</span>
             </button>
@@ -89,14 +89,14 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
           <div className="w-full">
             <button
               onClick={() => setShowQueryResult(!showQueryResult)}
-              className="text-xs px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-all duration-200 flex items-center gap-1.5 w-full"
+              className="text-xs px-3 py-1.5 rounded-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5 w-full"
             >
-              <Database size={11} />
+              <Database size={11} className="text-[var(--color-success-text)]" />
               查询结果数据
               <span className={`ml-auto transition-transform duration-200 text-[10px] ${showQueryResult ? 'rotate-90' : ''}`}>›</span>
             </button>
             {showQueryResult && (
-              <div className="mt-1.5 text-xs text-emerald-300 bg-[var(--color-bg-code)] border border-emerald-500/20 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
+              <div className="mt-1.5 text-xs text-[var(--color-text-secondary)] bg-[var(--color-bg-code)] border border-[var(--color-border)] rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed animate-fade-in">
                 {message.queryResult}
               </div>
             )}
@@ -108,7 +108,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             {!message.error && message.displayContent && (
               <button
                 onClick={() => navigator.clipboard.writeText(message.displayContent)}
-                className="text-xs px-3 py-1.5 rounded-full bg-slate-700/30 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-slate-700/50 hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
               >
                 <Copy size={11} />
                 复制
@@ -117,7 +117,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             {message.graphData && message.graphData.nodes.length > 0 && (
               <button
                 onClick={onShowGraph}
-                className="text-xs px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/40 transition-all duration-200 flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-full bg-[var(--color-primary-soft)] border border-[var(--color-primary-border)] text-[var(--color-primary-text)] hover:bg-[var(--color-primary-soft)] hover:border-[var(--color-primary-border)] transition-all duration-200 flex items-center gap-1.5"
               >
                 <GitBranch size={11} />
                 查看追溯图谱 ({message.graphData.nodes.length} 节点)
@@ -126,7 +126,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
             {message.cypher && (
               <button
                 onClick={() => onShowCypher?.(message.cypher!)}
-                className="text-xs px-3 py-1.5 rounded-full bg-slate-700/30 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-slate-700/50 hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)] transition-all duration-200 flex items-center gap-1.5"
               >
                 <Code2 size={11} />
                 Cypher
