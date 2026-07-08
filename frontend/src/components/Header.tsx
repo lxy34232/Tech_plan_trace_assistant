@@ -12,8 +12,8 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
   const { theme, toggleTheme } = useTheme()
 
   return (
-    <header className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-bg-secondary)]/95 backdrop-blur-md border-b border-[var(--color-border)] shrink-0 relative z-20">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+    <header className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-bg-secondary)]/95 backdrop-blur-md border-b border-[var(--color-border)] shrink-0 relative z-20 shadow-[var(--shadow-xs)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--color-primary)]/30 to-transparent" />
 
       <div className="flex items-center gap-2.5 mr-auto">
         <div className="relative">
@@ -34,7 +34,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
             onClick={() => onTabChange('chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'chat'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                ? 'bg-[var(--color-primary)] text-white shadow-[var(--shadow-sm)]'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
@@ -45,7 +45,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
             onClick={() => onTabChange('graph')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'graph'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                ? 'bg-[var(--color-primary)] text-white shadow-[var(--shadow-sm)]'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
@@ -57,7 +57,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
 
       <button
         onClick={toggleTheme}
-        className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"
+        className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200"
         aria-label={theme === 'dark' ? '切换到浅色模式' : '切换到深色模式'}
         title={theme === 'dark' ? '浅色模式' : '深色模式'}
       >
@@ -66,7 +66,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
 
       <button
         onClick={onOpenConfig}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] rounded-lg hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200"
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-[var(--color-bg-input)]/80 border border-[var(--color-border)] rounded-lg hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200"
         aria-label="打开设置"
       >
         <Settings size={13} />
