@@ -45,6 +45,7 @@ function buildSchemaStyle(isDark: boolean) {
   const edgeColor = isDark ? '#52587a' : '#8094b0'
   const edgeLabelColor = isDark ? '#94a3b8' : '#475569'
   const selectedBorder = isDark ? '#ffffff' : '#1e293b'
+  const labelOutline = isDark ? '#151823' : '#ffffff'
 
   return [
     {
@@ -95,7 +96,7 @@ function buildSchemaStyle(isDark: boolean) {
         'font-weight': 400,
         color: edgeLabelColor,
         'text-background-opacity': 0,
-        'text-outline-color': '#1e2130',
+        'text-outline-color': labelOutline,
         'text-outline-width': 2,
         'text-outline-opacity': 0.85,
       },

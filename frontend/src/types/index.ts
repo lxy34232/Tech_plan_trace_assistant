@@ -81,7 +81,7 @@ export interface Condition {
 }
 
 const PALETTE = [
-  '#3b82f6', '#a855f7', '#f59e0b', '#10b981', '#ef4444',
+  '#2f54eb', '#a855f7', '#f59e0b', '#10b981', '#ef4444',
   '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#8b5cf6',
 ]
 
@@ -93,7 +93,7 @@ export function getNodeColor(label: string): string {
 }
 
 export const NODE_TYPE_COLOR: Record<string, string> = {
-  TechOutline: '#3b82f6',
+  TechOutline: '#2f54eb',
   TechText: '#a855f7',
   TechRequirement: '#f59e0b',
   TechTask: '#10b981',

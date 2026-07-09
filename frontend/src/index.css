@@ -1,20 +1,5 @@
 @import "tailwindcss";
 
-@theme {
-  /* 过渡桥：让尚未迁移的 indigo-* 工具类临时渲染为科技蓝，Task 9 移除 */
-  --color-indigo-50:  #e6f0ff;
-  --color-indigo-100: #bae0ff;
-  --color-indigo-200: #91caff;
-  --color-indigo-300: #69b1ff;
-  --color-indigo-400: #4096ff;
-  --color-indigo-500: #1677ff;
-  --color-indigo-600: #1677ff;
-  --color-indigo-700: #0958d9;
-  --color-indigo-800: #003eb3;
-  --color-indigo-900: #002c8c;
-  --color-indigo-950: #001d66;
-}
-
 :root {
   /* Dark theme (default) */
   --color-bg-primary: #0d1017;

@@ -23,6 +23,7 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
   const edgeLabelColor = isDark ? '#94a3b8' : '#475569'
   const edgeLabelBg = isDark ? '#0f1117' : '#f8fafc'
   const selectedBorder = isDark ? '#ffffff' : '#1e293b'
+  const highlightColor = isDark ? '#3b82f6' : '#1677ff'
 
   return [
     {
@@ -66,9 +67,9 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
       selector: '.highlighted',
       style: {
         'border-width': 2,
-        'border-color': '#ff8590',
-        'line-color': '#ff8590',
-        'target-arrow-color': '#ff8590',
+        'border-color': highlightColor,
+        'line-color': highlightColor,
+        'target-arrow-color': highlightColor,
         opacity: 1,
       },
     },
@@ -95,9 +96,9 @@ function buildCyStyle(isDark: boolean, nodeSize: number = 42) {
     {
       selector: 'edge:selected',
       style: {
-        'line-color': '#C70019',
-        'target-arrow-color': '#C70019',
-        color: '#ff8590',
+        'line-color': highlightColor,
+        'target-arrow-color': highlightColor,
+        color: highlightColor,
         width: 2.5,
       },
     },
@@ -252,34 +253,34 @@ export default function GraphPanel({ graphData, selectedNode, onSelectNode }: Pr
   return (
     <div className="flex-1 min-w-0 min-h-0 bg-[var(--color-bg-primary)] animate-fade-in relative">
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-        <button onClick={handleZoomIn} title="放大" aria-label="放大图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+        <button onClick={handleZoomIn} title="放大" aria-label="放大图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
           <ZoomIn size={15} />
         </button>
-        <button onClick={handleZoomOut} title="缩小" aria-label="缩小图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+        <button onClick={handleZoomOut} title="缩小" aria-label="缩小图谱" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
           <ZoomOut size={15} />
         </button>
-        <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+        <button onClick={handleFit} title="适应屏幕" aria-label="适应屏幕" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
           <Maximize2 size={15} />
         </button>
-        <button onClick={handleExport} title="导出图片" aria-label="导出图谱图片" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+        <button onClick={handleExport} title="导出图片" aria-label="导出图谱图片" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
           <Download size={15} />
         </button>
 
         <div className="relative">
-          <button onClick={() => setShowLayoutMenu(!showLayoutMenu)} title="切换布局" aria-label="切换布局" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <button onClick={() => setShowLayoutMenu(!showLayoutMenu)} title="切换布局" aria-label="切换布局" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
             <Layout size={14} />
           </button>
           {showLayoutMenu && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setShowLayoutMenu(false)} />
-              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-1.5 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl min-w-[140px] animate-scale-in origin-top-left">
+              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-1.5 shadow-[var(--shadow-md)] backdrop-blur-xl min-w-[140px] animate-scale-in origin-top-left">
                 {LAYOUT_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => { setLayout(opt.value); setShowLayoutMenu(false) }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center gap-2.5 transition-all duration-150 ${
                       layout === opt.value
-                        ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25'
+                        ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary-text)] border border-[var(--color-primary-border)]'
                         : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)]'
                     }`}
                   >
@@ -293,24 +294,24 @@ export default function GraphPanel({ graphData, selectedNode, onSelectNode }: Pr
         </div>
 
         <div className="relative">
-          <button onClick={() => setShowSettings(!showSettings)} title="图形设置" aria-label="图形设置" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-indigo-500/40 hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
+          <button onClick={() => setShowSettings(!showSettings)} title="图形设置" aria-label="图形设置" className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary-border)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 backdrop-blur-sm">
             <Sliders size={14} />
           </button>
           {showSettings && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setShowSettings(false)} />
-              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-3 shadow-2xl shadow-[var(--color-shadow)] backdrop-blur-xl w-56 animate-scale-in origin-top-left space-y-4">
+              <div className="absolute left-10 top-0 z-30 bg-[var(--color-bg-card)]/98 border border-[var(--color-border)] rounded-xl p-3 shadow-[var(--shadow-md)] backdrop-blur-xl w-56 animate-scale-in origin-top-left space-y-4">
                 <div>
                   <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点大小</label>
                   <div className="flex items-center gap-2">
-                    <input type="range" min="20" max="100" value={nodeSize} onChange={(e) => setNodeSize(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
+                    <input type="range" min="20" max="100" value={nodeSize} onChange={(e) => setNodeSize(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-[var(--color-primary)] cursor-pointer" />
                     <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSize}</span>
                   </div>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2 block">节点间距</label>
                   <div className="flex items-center gap-2">
-                    <input type="range" min="0.5" max="3" step="0.1" value={nodeSpacing} onChange={(e) => setNodeSpacing(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-indigo-500 cursor-pointer" />
+                    <input type="range" min="0.5" max="3" step="0.1" value={nodeSpacing} onChange={(e) => setNodeSpacing(Number(e.target.value))} className="flex-1 h-1.5 rounded-full accent-[var(--color-primary)] cursor-pointer" />
                     <span className="text-xs font-mono text-[var(--color-text-secondary)] bg-[var(--color-bg-input)] px-2 py-1 rounded w-10 text-center">{nodeSpacing.toFixed(1)}</span>
                   </div>
                 </div>
@@ -322,14 +323,14 @@ export default function GraphPanel({ graphData, selectedNode, onSelectNode }: Pr
 
       <div className="absolute top-3 right-3 z-10 flex gap-2 text-[10px]">
         <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
-          <span className="text-indigo-400 font-semibold">{graphData.nodes.length}</span> 节点
+          <span className="text-[var(--color-primary-text)] font-semibold">{graphData.nodes.length}</span> 节点
         </span>
         <span className="px-2.5 py-1 rounded-full bg-[var(--color-bg-card)]/90 border border-[var(--color-border)] text-[var(--color-text-secondary)] backdrop-blur-sm">
-          <span className="text-indigo-400 font-semibold">{graphData.edges.length}</span> 关系
+          <span className="text-[var(--color-primary-text)] font-semibold">{graphData.edges.length}</span> 关系
         </span>
       </div>
 
-      <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[var(--color-bg-card)]/95 border border-[var(--color-border)] rounded-xl p-3 backdrop-blur-md shadow-lg shadow-[var(--color-shadow)]">
+      <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-1 bg-[var(--color-bg-card)]/95 border border-[var(--color-border)] rounded-xl p-3 backdrop-blur-md shadow-[var(--shadow-md)]">
         <span className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-wider mb-0.5">图例</span>
         {legendEntries.map(({ type, color, label }) => (
           <div key={type} className="flex items-center gap-2 group cursor-default">
