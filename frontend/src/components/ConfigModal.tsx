@@ -30,7 +30,7 @@ function Field({
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] outline-none focus:border-indigo-500/50 focus:shadow-[0_0_0_3px_rgba(199,0,25,0.1)] transition-all duration-200 pr-9"
+          className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] rounded-lg px-3 py-2.5 text-sm text-[var(--color-text-primary)] placeholder-[var(--color-text-dim)] outline-none focus:border-[var(--color-primary)] focus:shadow-[0_0_0_3px_var(--color-primary-soft)] transition-all duration-200 pr-9"
         />
         {isPassword && (
           <button
@@ -63,7 +63,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl shadow-[var(--color-shadow)] animate-scale-in"
+        className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-[var(--shadow-lg)] animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
@@ -73,7 +73,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           </h2>
           <button
             onClick={onClose}
-            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
+            className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] rounded-lg p-1 transition-all duration-200"
             aria-label="关闭"
           >
             <X size={18} />
@@ -83,8 +83,8 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         <div className="px-6 py-5 space-y-5">
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                <Zap size={13} className="text-indigo-400" />
+              <div className="w-7 h-7 rounded-lg bg-[var(--color-primary-soft)] flex items-center justify-center">
+                <Zap size={13} className="text-[var(--color-primary-text)]" />
               </div>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Dify 配置</span>
               <div className="h-px flex-1 bg-[var(--color-border)]" />
@@ -107,7 +107,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
 
           <div className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-500/10 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-[var(--color-bg-hover)] flex items-center justify-center">
                 <Server size={13} className="text-[var(--color-text-secondary)]" />
               </div>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">Neo4j 代理</span>
@@ -133,7 +133,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
             href="https://cloud.dify.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-[var(--color-primary-text)] hover:text-[var(--color-primary)] transition-colors"
           >
             <ExternalLink size={12} />
             打开 Dify Cloud 控制台
@@ -143,13 +143,13 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
         <div className="flex gap-2 justify-end px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]/30 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/30 rounded-lg transition-all duration-200"
+            className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] rounded-lg transition-all duration-200"
           >
             取消
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm bg-[#C70019] hover:bg-[#e0001c] text-white rounded-lg transition-all duration-200 shadow-sm shadow-[rgba(199,0,25,0.25)] font-medium"
+            className="px-5 py-2 text-sm bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white rounded-lg transition-all duration-200 shadow-[var(--shadow-sm)] font-medium"
           >
             保存配置
           </button>
