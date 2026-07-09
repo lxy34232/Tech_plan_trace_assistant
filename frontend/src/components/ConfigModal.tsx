@@ -149,7 +149,7 @@ export default function ConfigModal({ config, onSave, onClose }: Props) {
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 text-sm bg-[var(--color-primary-solid)] hover:bg-[var(--color-primary)] text-white rounded-lg transition-all duration-200 shadow-[var(--shadow-sm)] font-medium"
+            className="px-5 py-2 text-sm bg-[var(--color-primary-solid)] hover:bg-[var(--color-primary-active)] text-white rounded-lg transition-all duration-200 shadow-[var(--shadow-sm)] font-medium"
           >
             保存配置
           </button>
