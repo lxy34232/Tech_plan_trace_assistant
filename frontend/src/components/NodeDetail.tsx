@@ -41,9 +41,9 @@ const PROP_LABELS: Record<string, string> = {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  高: 'text-red-400 bg-red-500/10',
-  中: 'text-amber-400 bg-amber-500/10',
-  低: 'text-green-400 bg-green-500/10',
+  高: 'text-[var(--color-danger-text)] bg-[var(--color-danger-soft)]',
+  中: 'text-[var(--color-warning-text)] bg-[var(--color-warning-soft)]',
+  低: 'text-[var(--color-success-text)] bg-[var(--color-success-soft)]',
 }
 
 export default function NodeDetail({ node, onClose }: Props) {
@@ -83,22 +83,22 @@ export default function NodeDetail({ node, onClose }: Props) {
     if (key === 'status') {
       return (
         <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-          str === 'approved' || str === 'completed' ? 'text-green-400 bg-green-500/10' :
-          str === 'draft' || str === 'todo' ? 'text-[var(--color-text-secondary)] bg-slate-500/10' :
-          str === 'in_progress' ? 'text-blue-400 bg-blue-500/10' :
-          str === 'archived' ? 'text-[var(--color-text-muted)] bg-slate-500/5' :
-          'text-[var(--color-text-primary)] bg-slate-500/10'
+          str === 'approved' || str === 'completed' ? 'text-[var(--color-success-text)] bg-[var(--color-success-soft)]' :
+          str === 'draft' || str === 'todo' ? 'text-[var(--color-text-secondary)] bg-[var(--color-bg-hover)]' :
+          str === 'in_progress' ? 'text-[var(--color-primary-text)] bg-[var(--color-primary-soft)]' :
+          str === 'archived' ? 'text-[var(--color-text-muted)] bg-[var(--color-bg-hover)]' :
+          'text-[var(--color-text-primary)] bg-[var(--color-bg-hover)]'
         }`}>{str}</span>
       )
     }
     if (key === 'budget' && typeof value === 'string' && !Number.isNaN(Number(value))) {
-      return <span className="text-xs text-amber-400 font-mono">{Number(value).toLocaleString()} 万元</span>
+      return <span className="text-xs text-[var(--color-warning-text)] font-mono">{Number(value).toLocaleString()} 万元</span>
     }
     return <span className="text-[var(--color-text-primary)] leading-snug text-xs font-mono break-words">{formatValue(value)}</span>
   }
 
   return (
-    <aside className="h-full flex flex-col bg-[var(--color-bg-card)] border-l border-[var(--color-border)] w-80 min-w-80 shrink-0 overflow-hidden animate-slide-in-right shadow-xl shadow-[var(--color-shadow)]">
+    <aside className="h-full flex flex-col bg-[var(--color-bg-card)] border-l border-[var(--color-border)] w-80 min-w-80 shrink-0 overflow-hidden animate-slide-in-right shadow-[var(--shadow-md)]">
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]/50">
         <div className="relative">
           <div className="w-3.5 h-3.5 rounded-full" style={{ background: color }} />
@@ -110,7 +110,7 @@ export default function NodeDetail({ node, onClose }: Props) {
         </div>
         <button
           onClick={onClose}
-          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-700/50 rounded-lg p-1 transition-all duration-200"
+          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] rounded-lg p-1 transition-all duration-200"
           aria-label="关闭详情"
           title="关闭详情"
         >
@@ -142,11 +142,11 @@ export default function NodeDetail({ node, onClose }: Props) {
                       </div>
                       <button
                         onClick={() => handleCopy(formatValue(value), key)}
-                        className="px-2.5 flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-slate-600/30 transition-all duration-200 border-l border-[var(--color-border)]/50"
+                        className="px-2.5 flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-hover)] transition-all duration-200 border-l border-[var(--color-border)]/50"
                         title="复制"
                         aria-label="复制"
                       >
-                        {copiedKey === key ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+                        {copiedKey === key ? <Check size={14} className="text-[var(--color-success-text)]" /> : <Copy size={14} />}
                       </button>
                     </div>
                   </div>
@@ -163,11 +163,11 @@ export default function NodeDetail({ node, onClose }: Props) {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {node.labels.map(label => (
-              <span key={label} className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium">
+              <span key={label} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary-text)] font-medium">
                 {label}
               </span>
             ))}
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-700/30 text-slate-500 font-mono">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-bg-hover)] text-[var(--color-text-muted)] font-mono">
               ID: {node.id.slice(0, 12)}...
             </span>
           </div>
