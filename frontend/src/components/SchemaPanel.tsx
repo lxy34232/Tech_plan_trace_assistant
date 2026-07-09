@@ -255,14 +255,14 @@ export default function SchemaPanel({
 
       <div className="flex-1 flex flex-col min-w-0 border-l border-[var(--color-border)] bg-[var(--color-bg-secondary)]/40">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--color-border)] shrink-0">
-          <Database size={12} className="text-indigo-400 shrink-0" />
+          <Database size={12} className="text-[var(--color-primary-text)] shrink-0" />
           <span className="text-xs font-medium text-[var(--color-text-secondary)] flex-1 min-w-0 truncate tracking-wide">数据库结构</span>
           {schema && !loading && (
             <span className="text-[10px] text-[var(--color-text-dim)] shrink-0">{nodeCount}·{relCount}</span>
           )}
           {loading && <RefreshCw size={10} className="text-[var(--color-text-dim)] animate-spin shrink-0" />}
           {error && !loading && (
-            <button onClick={onRetry} className="text-red-400 hover:text-red-300 transition-colors shrink-0" title="重试" aria-label="重试">
+            <button onClick={onRetry} className="text-[var(--color-danger-text)] hover:text-[var(--color-danger)] transition-colors shrink-0" title="重试" aria-label="重试">
               <RefreshCw size={10} />
             </button>
           )}
@@ -306,7 +306,7 @@ export default function SchemaPanel({
           </div>
         )}
 
-        {error && <div className="px-3 py-2 text-xs text-red-400 shrink-0">{error}</div>}
+        {error && <div className="px-3 py-2 text-xs text-[var(--color-danger-text)] shrink-0">{error}</div>}
         {!schema && !loading && !error && (
           <div className="px-3 py-3 text-xs text-[var(--color-text-dim)] leading-relaxed">
             请在设置中配置代理服务地址以加载数据库结构
