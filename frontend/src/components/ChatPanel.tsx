@@ -292,7 +292,7 @@ export default function ChatPanel({
               <button
                 onClick={() => handleSend(input)}
                 disabled={!input.trim()}
-                className="p-1.5 rounded-lg bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-[var(--shadow-sm)]"
+                className="p-1.5 rounded-lg bg-[var(--color-primary-solid)] hover:bg-[var(--color-primary)] text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-[var(--shadow-sm)]"
                 aria-label="发送消息"
               >
                 <SendHorizonal size={15} />

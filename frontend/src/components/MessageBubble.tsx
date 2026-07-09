@@ -50,7 +50,7 @@ export default function MessageBubble({ message, onShowCypher, onShowGraph }: Pr
         <div
           className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
             isUser
-              ? 'bg-[var(--color-primary)] text-white rounded-tr-sm shadow-[var(--shadow-sm)]'
+              ? 'bg-[var(--color-primary-solid)] text-white rounded-tr-sm shadow-[var(--shadow-sm)]'
               : message.error
                 ? 'bg-[var(--color-danger-soft)] border border-[var(--color-danger-border)] text-[var(--color-danger-text)] rounded-tl-sm'
                 : 'bg-[var(--color-bg-card)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-tl-sm shadow-[var(--shadow-sm)]'

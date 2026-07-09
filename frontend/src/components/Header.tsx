@@ -34,7 +34,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
             onClick={() => onTabChange('chat')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'chat'
-                ? 'bg-[var(--color-primary)] text-white shadow-[var(--shadow-sm)]'
+                ? 'bg-[var(--color-primary-solid)] text-white shadow-[var(--shadow-sm)]'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
@@ -45,7 +45,7 @@ export default function Header({ activeTab, onTabChange, onOpenConfig, isMobile 
             onClick={() => onTabChange('graph')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-medium transition-all duration-200 ${
               activeTab === 'graph'
-                ? 'bg-[var(--color-primary)] text-white shadow-[var(--shadow-sm)]'
+                ? 'bg-[var(--color-primary-solid)] text-white shadow-[var(--shadow-sm)]'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
             }`}
           >
